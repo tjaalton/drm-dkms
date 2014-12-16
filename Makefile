@@ -77,7 +77,7 @@ I915_ITEMS  := i915_drv \
 DRM_ITEMS   := drm_auth drm_bufs drm_cache \
                drm_context drm_dma \
                drm_fops drm_gem drm_ioctl drm_irq \
-               drm_lock drm_memory drm_drv drm_stub drm_vm \
+               drm_lock drm_memory drm_drv drm_vm \
                drm_agpsupport drm_scatter drm_pci \
                drm_platform drm_sysfs drm_hashtab drm_mm \
                drm_crtc drm_modes drm_edid \
