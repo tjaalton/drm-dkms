@@ -17,6 +17,7 @@ I915_ITEMS  := i915_drv \
                i915_suspend \
                i915_sysfs \
                intel_pm \
+	       intel_runtime_pm \
                i915_cmd_parser \
                i915_gem_context \
                i915_gem_render_state \
@@ -32,15 +33,21 @@ I915_ITEMS  := i915_drv \
                i915_gpu_error \
                i915_irq \
                i915_trace_points \
+	       intel_lrc \
                intel_ringbuffer \
                intel_uncore \
                intel_renderstate_gen6 \
                intel_renderstate_gen7 \
                intel_renderstate_gen8 \
+	       intel_renderstate_gen9 \
+	       intel_audio \
                intel_bios \
                intel_display \
+	       intel_fifo_underrun \
+	       intel_frontbuffer \
                intel_modes \
                intel_overlay \
+	       intel_psr \
                intel_sideband \
                intel_sprite \
                dvo_ch7017 \
@@ -52,6 +59,7 @@ I915_ITEMS  := i915_drv \
                intel_crt \
                intel_ddi \
                intel_dp \
+	       intel_dp_mst \
                intel_dsi_cmd \
                intel_dsi \
                intel_dsi_pll \
@@ -66,17 +74,17 @@ I915_ITEMS  := i915_drv \
                i915_dma \
                i915_ums
 
-DRM_ITEMS   := drm_auth drm_buffer drm_bufs drm_cache \
+DRM_ITEMS   := drm_auth drm_bufs drm_cache \
                drm_context drm_dma \
-               drm_drv drm_fops drm_gem drm_ioctl drm_irq \
-               drm_lock drm_memory drm_stub drm_vm \
+               drm_fops drm_gem drm_ioctl drm_irq \
+               drm_lock drm_memory drm_drv drm_stub drm_vm \
                drm_agpsupport drm_scatter drm_pci \
                drm_platform drm_sysfs drm_hashtab drm_mm \
                drm_crtc drm_modes drm_edid \
                drm_info drm_debugfs drm_encoder_slave \
                drm_trace_points drm_global drm_prime \
                drm_rect drm_vma_manager drm_flip_work \
-               drm_modeset_lock
+               drm_modeset_lock drm_atomic
 
 # this prioritises the DKMS package include directories over the kernel headers
 # allowing us to override header files where the 3.12.x versions have extra
@@ -92,7 +100,7 @@ ccflags-y    := -Iinclude/drm
 
 # construct the object file lists to match the in-tree Makefiles:
 drm_kms_helper-y := \
-    $(patsubst %,$(DRMD)%.o,drm_crtc_helper drm_dp_helper drm_probe_helper drm_plane_helper)
+    $(patsubst %,$(DRMD)%.o,drm_crtc_helper drm_dp_helper drm_probe_helper drm_plane_helper drm_dp_mst_topology drm_atomic_helper)
 drm_kms_helper-$(CONFIG_DRM_LOAD_EDID_FIRMWARE) += \
     $(patsubst %,$(DRMD)%.o,drm_edid_load)
 drm_kms_helper-$(CONFIG_DRM_KMS_FB_HELPER)     += \
