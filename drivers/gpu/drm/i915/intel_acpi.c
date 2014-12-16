@@ -9,6 +9,8 @@
 #include <drm/drmP.h>
 #include "i915_drv.h"
 
+#include "backport_acpi_bus.h"
+
 #define INTEL_DSM_REVISION_ID 1 /* For Calpella anyway... */
 #define INTEL_DSM_FN_PLATFORM_MUX_INFO 1 /* No args */
 

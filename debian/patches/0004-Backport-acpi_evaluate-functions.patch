@@ -163,15 +163,3 @@ index 0000000..c6822fc
 +	return false;
 +}
 +EXPORT_SYMBOL(acpi_check_dsm);
-diff --git a/drivers/gpu/drm/i915/intel_acpi.c b/drivers/gpu/drm/i915/intel_acpi.c
-index ff692db..cbee9c1 100644
---- a/drivers/gpu/drm/i915/intel_acpi.c
-+++ b/drivers/gpu/drm/i915/intel_acpi.c
-@@ -9,6 +9,7 @@
- #include <drm/drmP.h>
- #include "i915_drv.h"
- 
-+#include "backport_acpi_bus.h"
- #include "backport-check.h"
- 
- #define INTEL_DSM_REVISION_ID 1 /* For Calpella anyway... */
