@@ -13,3 +13,4 @@
 revert-drm-Use-ktime_mono_to_real.patch
 revert-hlst-add-beind-rcu.patch
 dma_buf_export_fix.patch
+revert-module_param_named_unsafe-usage.patch
