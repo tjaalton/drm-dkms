@@ -1,0 +1,24 @@
+diff --git a/drivers/gpu/drm/drm_cache.c b/drivers/gpu/drm/drm_cache.c
+index a6b6906..ba2918c 100644
+--- a/drivers/gpu/drm/drm_cache.c
++++ b/drivers/gpu/drm/drm_cache.c
+@@ -31,6 +31,7 @@
+ #include <linux/export.h>
+ #include <drm/drmP.h>
+ 
++#include <backport.h>
+ #if defined(CONFIG_X86)
+ 
+ /*
+diff --git a/drivers/gpu/drm/drm_irq.c b/drivers/gpu/drm/drm_irq.c
+index f5a5f18..3b2161b 100644
+--- a/drivers/gpu/drm/drm_irq.c
++++ b/drivers/gpu/drm/drm_irq.c
+@@ -42,6 +42,7 @@
+ #include <linux/vgaarb.h>
+ #include <linux/export.h>
+ 
++#include <backport.h>
+ /* Access macro for slots in vblank timestamp ringbuffer. */
+ #define vblanktimestamp(dev, crtc, count) \
+ 	((dev)->vblank[crtc].time[(count) % DRM_VBLANKTIME_RBSIZE])
