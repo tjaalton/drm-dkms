@@ -1,3 +1,6 @@
+This is a squash of 16e9a21f33cda9d48b70ff54e1ed2e4a77497bc6 and
+5ed0bdf21a85d78e04f89f15ccf227562177cbd9 reverts
+
 diff --git a/drivers/gpu/drm/i915/i915_drv.h b/drivers/gpu/drm/i915/i915_drv.h
 index 63bcda5..9fc6a00 100644
 --- a/drivers/gpu/drm/i915/i915_drv.h
@@ -12,7 +15,7 @@ index 63bcda5..9fc6a00 100644
  	u8 corr;
  
 diff --git a/drivers/gpu/drm/i915/i915_gem.c b/drivers/gpu/drm/i915/i915_gem.c
-index 4a9faea..0613e72 100644
+index 4a9faea..764195f 100644
 --- a/drivers/gpu/drm/i915/i915_gem.c
 +++ b/drivers/gpu/drm/i915/i915_gem.c
 @@ -1210,16 +1210,16 @@ static bool can_wait_boost(struct drm_i915_file_private *file_priv)
@@ -98,7 +101,7 @@ index 4a9faea..0613e72 100644
  	 * on this IOCTL with a timeout <=0 (like busy ioctl)
  	 */
 -	if (args->timeout_ns <= 0) {
-+-	if (!args->timeout_ns) {
++	if (!args->timeout_ns) {
  		ret = -ETIME;
  		goto out;
  	}
@@ -108,7 +111,7 @@ index 4a9faea..0613e72 100644
  
 -	return __i915_wait_seqno(ring, seqno, reset_counter, true,
 -				 &args->timeout_ns, file->driver_priv);
-+	ret = __wait_seqno(ring, seqno, reset_counter, true, timeout, file->driver_priv);
++	ret = __i915_wait_seqno(ring, seqno, reset_counter, true, timeout, file->driver_priv);
 +	if (timeout)
 +		args->timeout_ns = timespec_to_ns(timeout);
 +	return ret;
@@ -148,3 +151,16 @@ index 1f4b56e..807cbd6 100644
  
  	/* Don't divide by 0 */
  	if (!diffms)
+diff --git a/drivers/gpu/drm/i915/i915_drv.h b/drivers/gpu/drm/i915/i915_drv.h
+index 63bcda5..cee6ed3 100644
+--- a/drivers/gpu/drm/i915/i915_drv.h
++++ b/drivers/gpu/drm/i915/i915_drv.h
+@@ -2578,7 +2578,7 @@ int __i915_add_request(struct intel_engine_cs *ring,
+ int __i915_wait_seqno(struct intel_engine_cs *ring, u32 seqno,
+ 			unsigned reset_counter,
+ 			bool interruptible,
+-			s64 *timeout,
++			struct timespec *timeout,
+ 			struct drm_i915_file_private *file_priv);
+ int __must_check i915_wait_seqno(struct intel_engine_cs *ring,
+ 				 uint32_t seqno);
