@@ -1,0 +1,33 @@
+From: Jack Leigh <jack.leigh@collabora.com>
+Date: Tue, 24 Jun 2014 14:29:21 +0100
+Subject: Add alias for clflushopt
+
+---
+ include/backport-check.h | 2 ++
+ include/backport.h       | 5 +++++
+ 2 files changed, 7 insertions(+)
+ create mode 100644 include/backport.h
+
+diff --git a/include/backport-check.h b/include/backport-check.h
+index b35eef2..bfc1238 100644
+--- a/include/backport-check.h
++++ b/include/backport-check.h
+@@ -1,5 +1,7 @@
+ #pragma once
+ 
++#include "backport.h"
++
+ #ifdef _DRM_P_H_
+ #ifndef BACKPORT__DRM_P_H_
+ #error "drm/drmP.h not from package"
+diff --git a/include/backport.h b/include/backport.h
+new file mode 100644
+index 0000000..4c3b503
+--- /dev/null
++++ b/include/backport.h
+@@ -0,0 +1,5 @@
++#pragma once
++
++/* clflushopt falls back to clflush
++ * if clflushopt is not available */
++#define clflushopt clflush

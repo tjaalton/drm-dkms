@@ -1,0 +1,12 @@
+Source: i915-3.16-3.13
+Section: kernel
+Priority: optional
+Maintainer: Jack Leigh <jack.leigh@collabora.com>
+Build-Depends: debhelper (>=5)
+
+Package: i915-3.16-3.13-_KVERS_
+Architecture: any
+Depends: linux-modules-_KVERS_ | linux-image-_KVERS_
+Provides: i915-modules
+Description: Intel i915 video drivers from the mainline kernel,
+ backported to the distribution's kernel version _KVERS_

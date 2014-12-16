@@ -1,0 +1,41 @@
+From: Jack Leigh <jack.leigh@collabora.com>
+Date: Tue, 30 Sep 2014 15:40:55 +0100
+Subject: Provide acpi_os_ioremap in backport.h
+
+---
+ drivers/gpu/drm/i915/intel_opregion.c |  1 +
+ include/backport.h                    | 12 ++++++++++++
+ 2 files changed, 13 insertions(+)
+
+diff --git a/drivers/gpu/drm/i915/intel_opregion.c b/drivers/gpu/drm/i915/intel_opregion.c
+index 775f741..7db9c11 100644
+--- a/drivers/gpu/drm/i915/intel_opregion.c
++++ b/drivers/gpu/drm/i915/intel_opregion.c
+@@ -35,6 +35,7 @@
+ #include "i915_drv.h"
+ #include "intel_drv.h"
+ 
++#include "backport.h"
+ #include "backport-check.h"
+ 
+ #define PCI_ASLE		0xe4
+diff --git a/include/backport.h b/include/backport.h
+index 38679ea..0075e09 100644
+--- a/include/backport.h
++++ b/include/backport.h
+@@ -12,3 +12,15 @@
+ #ifndef smp_mb__after_atomic
+ #define smp_mb__after_atomic()	smp_mb()
+ #endif
++
++/* from include/acpi/acpi_io.h */
++/* We apparently don't want to include linux/acpi_io.h directly as that
++ * can cause build problems in our kernel */
++#include <linux/acpi.h>
++#include <linux/io.h>
++
++static inline void __iomem *acpi_os_ioremap(acpi_physical_address phys,
++					    acpi_size size)
++{
++       return ioremap_cache(phys, size);
++}

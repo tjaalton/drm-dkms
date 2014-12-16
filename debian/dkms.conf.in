@@ -1,0 +1,15 @@
+PACKAGE_NAME="i915-3.16-3.13"
+PACKAGE_VERSION="__VERSION__"
+MAKE[0]="make -d V=1 -C ${kernel_source_dir} M=${dkms_tree}/${PACKAGE_NAME}/${PACKAGE_VERSION}/build"
+CLEAN="make -d V=1 -C ${kernel_source_dir} M=${dkms_tree}/${PACKAGE_NAME}/${PACKAGE_VERSION}/build clean"
+AUTOINSTALL=yes
+BUILT_MODULE_NAME[0]="i915"
+BUILT_MODULE_NAME[1]="intel_ips"
+BUILT_MODULE_NAME[2]="drm"
+BUILT_MODULE_NAME[3]="drm_kms_helper"
+BUILT_MODULE_NAME[4]="drm_mipi_dsi"
+DEST_MODULE_LOCATION[0]=/updates
+DEST_MODULE_LOCATION[1]=/updates
+DEST_MODULE_LOCATION[2]=/updates
+DEST_MODULE_LOCATION[3]=/updates
+DEST_MODULE_LOCATION[4]=/updates

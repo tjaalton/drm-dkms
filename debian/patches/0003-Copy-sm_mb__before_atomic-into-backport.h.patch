@@ -1,0 +1,25 @@
+From: Jack Leigh <jack.leigh@collabora.com>
+Date: Fri, 26 Sep 2014 15:12:54 +0100
+Subject: Copy sm_mb__before_atomic() into backport.h
+
+---
+ include/backport.h | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/include/backport.h b/include/backport.h
+index 4c3b503..38679ea 100644
+--- a/include/backport.h
++++ b/include/backport.h
+@@ -3,3 +3,12 @@
+ /* clflushopt falls back to clflush
+  * if clflushopt is not available */
+ #define clflushopt clflush
++
++/* from asm-generic/barrier.h */
++#ifndef smp_mb__before_atomic
++#define smp_mb__before_atomic()	smp_mb()
++#endif
++
++#ifndef smp_mb__after_atomic
++#define smp_mb__after_atomic()	smp_mb()
++#endif
