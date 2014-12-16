@@ -1,0 +1,12 @@
+diff --git a/drivers/gpu/drm/i915/i915_gem_dmabuf.c b/drivers/gpu/drm/i915/i915_gem_dmabuf.c
+index 82a1f4b..e39226a 100644
+--- a/drivers/gpu/drm/i915/i915_gem_dmabuf.c
++++ b/drivers/gpu/drm/i915/i915_gem_dmabuf.c
+@@ -27,6 +27,7 @@
+ #include "i915_drv.h"
+ #include <linux/dma-buf.h>
+ 
++#include "backport.h"
+ static struct drm_i915_gem_object *dma_buf_to_obj(struct dma_buf *buf)
+ {
+ 	return to_intel_bo(buf->priv);
