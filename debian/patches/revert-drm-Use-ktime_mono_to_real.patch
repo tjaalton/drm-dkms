@@ -1,8 +1,18 @@
+From 72cf29049a5144736ffd44e55462240c28a07143 Mon Sep 17 00:00:00 2001
+From: Timo Aaltonen <tjaalton@debian.org>
+Date: Wed, 17 Dec 2014 11:16:41 +0200
+Subject: [PATCH] Revert "drm: Use ktime_mono_to_real()"
+
+This reverts commit d2cb58c85ce4789caafa66fa8f1c641ab2504ead.
+---
+ drivers/gpu/drm/drm_irq.c | 16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
+
 diff --git a/drivers/gpu/drm/drm_irq.c b/drivers/gpu/drm/drm_irq.c
-index 3b2161b..ebeea4d 100644
+index f5a5f18..c52a78f 100644
 --- a/drivers/gpu/drm/drm_irq.c
 +++ b/drivers/gpu/drm/drm_irq.c
-@@ -658,8 +658,8 @@ int drm_calc_vbltimestamp_from_scanoutpos(struct drm_device *dev, int crtc,
+@@ -657,8 +657,8 @@ int drm_calc_vbltimestamp_from_scanoutpos(struct drm_device *dev, int crtc,
  					  const struct drm_crtc *refcrtc,
  					  const struct drm_display_mode *mode)
  {
@@ -12,7 +22,7 @@ index 3b2161b..ebeea4d 100644
  	int vbl_status;
  	int vpos, hpos, i;
  	int framedur_ns, linedur_ns, pixeldur_ns, delta_ns, duration_ns;
-@@ -704,6 +704,13 @@ int drm_calc_vbltimestamp_from_scanoutpos(struct drm_device *dev, int crtc,
+@@ -703,6 +703,13 @@ int drm_calc_vbltimestamp_from_scanoutpos(struct drm_device *dev, int crtc,
  		vbl_status = dev->driver->get_scanout_position(dev, crtc, flags, &vpos,
  							       &hpos, &stime, &etime);
  
@@ -26,7 +36,7 @@ index 3b2161b..ebeea4d 100644
  		/* Return as no-op if scanout query unsupported or failed. */
  		if (!(vbl_status & DRM_SCANOUTPOS_VALID)) {
  			DRM_DEBUG("crtc %d : scanoutpos query failed [%d].\n",
-@@ -742,7 +749,7 @@ int drm_calc_vbltimestamp_from_scanoutpos(struct drm_device *dev, int crtc,
+@@ -741,7 +748,7 @@ int drm_calc_vbltimestamp_from_scanoutpos(struct drm_device *dev, int crtc,
  	delta_ns = vpos * linedur_ns + hpos * pixeldur_ns;
  
  	if (!drm_timestamp_monotonic)
@@ -35,7 +45,7 @@ index 3b2161b..ebeea4d 100644
  
  	/* save this only for debugging purposes */
  	tv_etime = ktime_to_timeval(etime);
-@@ -773,7 +780,10 @@ static struct timeval get_drm_timestamp(void)
+@@ -772,7 +779,10 @@ static struct timeval get_drm_timestamp(void)
  {
  	ktime_t now;
  
@@ -47,3 +57,6 @@ index 3b2161b..ebeea4d 100644
  	return ktime_to_timeval(now);
  }
  
+-- 
+2.1.3
+
