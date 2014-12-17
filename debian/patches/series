@@ -1,3 +1,5 @@
+revert-drm-i915-Kick-fbdev-before-vgacon.patch
+revert-drm-i915-Handle-failure-to-kick-out-a-conflic.patch
 #0001-Add-backport-checks.patch
 #0002-Add-alias-for-clflushopt.patch
 #0003-Copy-sm_mb__before_atomic-into-backport.h.patch
@@ -8,7 +10,7 @@
 #0007-Provide-acpi_os_ioremap-in-backport.h.patch
 0008-Install-video.ko.patch
 0009-Move-simple_dname-into-drm_stub.c.patch
-#0010-Revert-use-of-vgacon.patch
+0010-Revert-use-of-vgacon.patch
 0011-Import-interval_tree-for-i915_gem_userptr.c.patch
 revert-drm-Use-ktime_mono_to_real.patch
 revert-hlst-add-beind-rcu.patch

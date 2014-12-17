@@ -1,0 +1,69 @@
+From a39cfcbfddafd65df3c0b80538ff3a508b07eb19 Mon Sep 17 00:00:00 2001
+From: Timo Aaltonen <tjaalton@debian.org>
+Date: Wed, 17 Dec 2014 10:21:22 +0200
+Subject: [PATCH] Revert "drm/i915: Handle failure to kick out a conflicting fb
+ driver"
+
+This reverts commit f96de58fc7e7d3d717c7c63975c3b896c906b5e3.
+---
+ drivers/gpu/drm/i915/i915_dma.c | 18 +++++-------------
+ 1 file changed, 5 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/i915_dma.c b/drivers/gpu/drm/i915/i915_dma.c
+index a909875..081745c 100644
+--- a/drivers/gpu/drm/i915/i915_dma.c
++++ b/drivers/gpu/drm/i915/i915_dma.c
+@@ -461,16 +461,15 @@ out:
+ }
+ 
+ #if IS_ENABLED(CONFIG_FB)
+-static int i915_kick_out_firmware_fb(struct drm_i915_private *dev_priv)
++static void i915_kick_out_firmware_fb(struct drm_i915_private *dev_priv)
+ {
+ 	struct apertures_struct *ap;
+ 	struct pci_dev *pdev = dev_priv->dev->pdev;
+ 	bool primary;
+-	int ret;
+ 
+ 	ap = alloc_apertures(1);
+ 	if (!ap)
+-		return -ENOMEM;
++		return;
+ 
+ 	ap->ranges[0].base = dev_priv->gtt.mappable_base;
+ 	ap->ranges[0].size = dev_priv->gtt.mappable_end;
+@@ -478,16 +477,13 @@ static int i915_kick_out_firmware_fb(struct drm_i915_private *dev_priv)
+ 	primary =
+ 		pdev->resource[PCI_ROM_RESOURCE].flags & IORESOURCE_ROM_SHADOW;
+ 
+-	ret = remove_conflicting_framebuffers(ap, "inteldrmfb", primary);
++	remove_conflicting_framebuffers(ap, "inteldrmfb", primary);
+ 
+ 	kfree(ap);
+-
+-	return ret;
+ }
+ #else
+-static int i915_kick_out_firmware_fb(struct drm_i915_private *dev_priv)
++static void i915_kick_out_firmware_fb(struct drm_i915_private *dev_priv)
+ {
+-	return 0;
+ }
+ #endif
+ 
+@@ -707,11 +703,7 @@ int i915_driver_load(struct drm_device *dev, unsigned long flags)
+ 			goto out_gtt;
+ 		}
+ 
+-		ret = i915_kick_out_firmware_fb(dev_priv);
+-		if (ret) {
+-			DRM_ERROR("failed to remove conflicting framebuffer drivers\n");
+-			goto out_gtt;
+-		}
++		i915_kick_out_firmware_fb(dev_priv);
+ 	}
+ 
+ 	pci_set_master(dev->pdev);
+-- 
+2.1.3
+
