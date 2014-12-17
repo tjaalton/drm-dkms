@@ -1,14 +1,16 @@
+revert-drm-i915-Kick-fbdev-before-vgacon.patch
+revert-drm-i915-Handle-failure-to-kick-out-a-conflic.patch
 #0001-Add-backport-checks.patch
 #0002-Add-alias-for-clflushopt.patch
 #0003-Copy-sm_mb__before_atomic-into-backport.h.patch
-#backport.patch
+backport.patch
 0004-Backport-acpi_evaluate-functions.patch
 0005-Sideport-drivers-acpi-video.c-from-ubuntu-trusty-tre.patch
 0006-Export-acpi_video_verify_backlight_support-as-in-3.1.patch
 #0007-Provide-acpi_os_ioremap-in-backport.h.patch
 0008-Install-video.ko.patch
 0009-Move-simple_dname-into-drm_stub.c.patch
-#0010-Revert-use-of-vgacon.patch
+0010-Revert-use-of-vgacon.patch
 0011-Import-interval_tree-for-i915_gem_userptr.c.patch
 revert-drm-Use-ktime_mono_to_real.patch
 revert-hlst-add-beind-rcu.patch
@@ -16,3 +18,8 @@ dma_buf_export_fix.patch
 revert-module_param_named_unsafe-usage.patch
 revert-drm-i915-use-nsec-based-interfaces.patch
 i915_gem_dmabuff-backport.patch
+revert-drm-i915-handle-inaccurate-time-conversion-issues.diff
+revert-drm-atomic-helpers-document-how-to-implement-.patch
+revert-drm-atomic-Integrate-fence-support.patch
+revert-drm-i915-make-system-freeze-support-depend-on.patch
+revert-drm-i915-send-proper-opregion-notifications-o.patch
