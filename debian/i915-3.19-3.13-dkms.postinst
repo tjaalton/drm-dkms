@@ -1,0 +1,73 @@
+#!/bin/bash
+
+set -e
+
+_module=i915;
+_k_from=3.19;
+_k_to=3.13;
+
+package=$_module-$_k_from-$_k_to-dkms;
+name=$_module-$_k_from-$_k_to;
+
+kernel_list=;
+kernel_fields='${status} ${package} ${source} ${version} ${architecture}\n';
+
+IFS=". " read major_target minor_target x <<< $_k_to;
+# Filter the available target kernel list down to compatible ones:
+# -headers- must be installed
+# only count real headers - the meta packages and shared headers are false +ves
+# must fall within the expected range of kernels for the backport
+while read x ok status pack source kver arch;
+do
+    if [ x$arch    = xall         ]; then continue; fi;
+    if [ x$source  = xlinux-meta  ]; then continue; fi;
+    if [ x$ok     != xok          ]; then continue; fi;
+    if [ x$status != xinstalled   ]; then continue; fi;
+    IFS="-. " read major minor sub extra <<< $kver;
+    if [ $major -ne $major_target ]; then continue; fi;
+    if [ $minor -ne $minor_target ]; then continue; fi;
+
+    kver=${kver%.*};
+    kernel_list=${kernel_list}${kernel_list:+ }$kver${pack#*$kver};
+done < <(dpkg-query -f "$kernel_fields" -W linux-headers-\*);
+
+version=$(dpkg-query -W -f='${Version}' $package | rev | \
+          cut -d- -f2- | rev | cut -d':' -f2 | tr -d "\n");
+
+# note the || true - we don't want the installation of the package to fail
+# if the dkms commands fail - that leaves us with a partially installed
+# package which is a bit harder to remove. If the dkms commands fail,
+# we'll just have a system with some source that doesn't have the new modules
+# built+installed, which is much easier to clean up than a partially installed
+# packages (at least from the eventual automated installer's POV)
+
+# is there an old version? remove it! it would prevent our fresh source from
+# being built, so the user wouldn't actually get our version of the module
+isadded=$(dkms status -m $name -v $version);
+
+if [ "${isadded}" != "" ];
+then
+    dkms --verbose remove -m $name -v $version --all || true;
+    isadded=$(dkms status -m $name -v $version);
+fi
+
+# add our own version [back in]:
+if [ "${isadded}" = "" ]; 
+then 
+    dkms --verbose add -m $name -v $version || true;
+    isadded=$(dkms status -m $name -v $version);
+fi
+
+for target in $kernel_list;
+do
+    # now build and install:
+    if [ "$1" = 'configure' ];
+    then
+        dkms --verbose build   -m $name -v $version -k $target && \
+        dkms --verbose install -m $name -v $version -k $target || true;
+    fi;
+done;
+
+#DEBHELPER#
+
+exit 0;
