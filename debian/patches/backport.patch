@@ -1,5 +1,3 @@
-diff --git a/drivers/gpu/drm/drm_cache.c b/drivers/gpu/drm/drm_cache.c
-index a6b6906..ba2918c 100644
 --- a/drivers/gpu/drm/drm_cache.c
 +++ b/drivers/gpu/drm/drm_cache.c
 @@ -31,6 +31,7 @@
@@ -10,8 +8,6 @@ index a6b6906..ba2918c 100644
  #if defined(CONFIG_X86)
  
  /*
-diff --git a/drivers/gpu/drm/drm_irq.c b/drivers/gpu/drm/drm_irq.c
-index f5a5f18..3b2161b 100644
 --- a/drivers/gpu/drm/drm_irq.c
 +++ b/drivers/gpu/drm/drm_irq.c
 @@ -42,6 +42,7 @@
@@ -22,3 +18,36 @@ index f5a5f18..3b2161b 100644
  /* Access macro for slots in vblank timestamp ringbuffer. */
  #define vblanktimestamp(dev, crtc, count) \
  	((dev)->vblank[crtc].time[(count) % DRM_VBLANKTIME_RBSIZE])
+--- a/drivers/gpu/drm/i915/intel_acpi.c
++++ b/drivers/gpu/drm/i915/intel_acpi.c
+@@ -9,6 +9,8 @@
+ #include <drm/drmP.h>
+ #include "i915_drv.h"
+ 
++#include "backport_acpi_bus.h"
++
+ #define INTEL_DSM_REVISION_ID 1 /* For Calpella anyway... */
+ #define INTEL_DSM_FN_PLATFORM_MUX_INFO 1 /* No args */
+ 
+--- a/drivers/gpu/drm/i915/intel_opregion.c
++++ b/drivers/gpu/drm/i915/intel_opregion.c
+@@ -35,6 +35,8 @@
+ #include "i915_drv.h"
+ #include "intel_drv.h"
+ 
++#include "backport.h"
++
+ #define PCI_ASLE		0xe4
+ #define PCI_ASLS		0xfc
+ #define PCI_SWSCI		0xe8
+--- a/drivers/gpu/drm/i915/i915_irq.c
++++ b/drivers/gpu/drm/i915/i915_irq.c
+@@ -37,6 +37,8 @@
+ #include "i915_trace.h"
+ #include "intel_drv.h"
+ 
++#include "backport.h"
++
+ /**
+  * DOC: interrupt handling
+  *

@@ -35,8 +35,6 @@
 #include "i915_drv.h"
 #include "intel_drv.h"
 
-#include "backport.h"
-
 #define PCI_ASLE		0xe4
 #define PCI_ASLS		0xfc
 #define PCI_SWSCI		0xe8

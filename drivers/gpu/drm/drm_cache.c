@@ -31,7 +31,6 @@
 #include <linux/export.h>
 #include <drm/drmP.h>
 
-#include <backport.h>
 #if defined(CONFIG_X86)
 
 /*
