@@ -16,3 +16,4 @@ dma_buf_export_fix.patch
 revert-module_param_named_unsafe-usage.patch
 revert-drm-i915-use-nsec-based-interfaces.patch
 i915_gem_dmabuff-backport.patch
+revert-drm-i915-handle-inaccurate-time-conversion-issues.diff

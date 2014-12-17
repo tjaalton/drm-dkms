@@ -1,0 +1,19 @@
+--- a/drivers/gpu/drm/i915/i915_gem.c
++++ b/drivers/gpu/drm/i915/i915_gem.c
+@@ -1304,16 +1304,6 @@ int __i915_wait_seqno(struct intel_engin
+ 		*timeout = timespec_sub(*timeout, sleep_time);
+ 		if (!timespec_valid(timeout)) /* i.e. negative time remains */
+ 			set_normalized_timespec(timeout, 0, 0);
+-
+-		/*
+-		 * Apparently ktime isn't accurate enough and occasionally has a
+-		 * bit of mismatch in the jiffies<->nsecs<->ktime loop. So patch
+-		 * things up to make the test happy. We allow up to 1 jiffy.
+-		 *
+-		 * This is a regrssion from the timespec->ktime conversion.
+-		 */
+-		if (ret == -ETIME && *timeout < jiffies_to_usecs(1)*1000)
+-			*timeout = 0;
+ 	}
+ 
+ 	return ret;
