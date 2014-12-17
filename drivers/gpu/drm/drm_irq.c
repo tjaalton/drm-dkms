@@ -42,7 +42,6 @@
 #include <linux/vgaarb.h>
 #include <linux/export.h>
 
-#include <backport.h>
 /* Access macro for slots in vblank timestamp ringbuffer. */
 #define vblanktimestamp(dev, crtc, count) \
 	((dev)->vblank[crtc].time[(count) % DRM_VBLANKTIME_RBSIZE])
