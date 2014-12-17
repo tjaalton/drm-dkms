@@ -14,10 +14,10 @@ endif
 # some default definitions, important!
 #
 # Name of the source package
-psource:=i915-3.16-3.13-source
+psource:=i915-3.19-3.13-source
 
 # The short upstream name, used for the module source directory
-sname:=i915-3.16-3.13
+sname:=i915-3.19-3.13
 
 ### KERNEL SETUP
 ### Setup the stuff needed for making kernel module packages

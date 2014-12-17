@@ -1,5 +1,5 @@
-i915-3.16-3.13 (1) trusty; urgency=low
+i915-3.19-3.13 (3.19rc1) trusty; urgency=medium
 
-  * Blah
+  * Initial release, based on 2dbfca5a181973558277b28b1f4c36362291f5e0
 
- -- Jack Leigh <jack.leigh@collabora.com>  Mon, 25 Sep 2014 14:27:45 +0100
+ -- Robert Hooker <sarvatt@ubuntu.com>  Wed, 17 Dec 2014 11:33:08 -0500

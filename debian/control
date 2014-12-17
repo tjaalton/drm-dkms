@@ -1,22 +1,22 @@
-Source: i915-3.16-3.13
+Source: i915-3.19-3.13
 Section: kernel
 Priority: optional
 Maintainer: Jack Leigh <jack.leigh@collabora.com>
 Build-Depends: debhelper (>=5), quilt
 
-Package: i915-3.16-3.13-source
+Package: i915-3.19-3.13-source
 Architecture: all
 Depends: debhelper (>= 5), module-assistant, ${misc:Depends}
 Description: Intel i915 video drivers from the mainline kernel,
- backported from the 3.16 series to the 3.13 series.
+ backported from the 3.19 series to the 3.13 series.
  .
  This package contains source to be built with module-assistant 
  or kernel-package.
 
-Package: i915-3.16-3.13-dkms
+Package: i915-3.19-3.13-dkms
 Architecture: all
 Depends: debhelper, dkms, linux-headers, ${misc:Depends}
 Description: Intel i915 video drivers from the mainline kernel,
- backported from the 3.16 series to the 3.12 series.
+ backported from the 3.19 series to the 3.13 series.
  .
  This package contains the source to be built with dkms.
