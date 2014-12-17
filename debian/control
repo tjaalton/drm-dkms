@@ -1,7 +1,8 @@
 Source: i915-3.19-3.13
 Section: kernel
 Priority: optional
-Maintainer: Jack Leigh <jack.leigh@collabora.com>
+Maintainer: Robert Hooker <robert.hooker@canonical.com>
+XSBC-Original-Maintainer: Jack Leigh <jack.leigh@collabora.com>
 Build-Depends: debhelper (>=5), quilt
 
 Package: i915-3.19-3.13-source
