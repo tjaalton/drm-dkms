@@ -1,3 +1,9 @@
+i915-3.19-3.13 (3.19-rc4) trusty; urgency=medium
+
+  * Update to 3.19-rc6
+
+ -- Robert Hooker <sarvatt@ubuntu.com>  Mon, 26 Jan 2015 14:44:38 -0500
+
 i915-3.19-3.13 (3.19-rc4-2) trusty; urgency=medium
 
   * Rebuild initramfs on update.
