@@ -1,3 +1,9 @@
+i915-3.19-3.13 (3.19-rc4-2) trusty; urgency=medium
+
+  * Rebuild initramfs on update.
+
+ -- Robert Hooker <sarvatt@ubuntu.com>  Mon, 26 Jan 2015 11:49:44 -0500
+
 i915-3.19-3.13 (3.19-rc4) trusty; urgency=medium
 
   * New release, based on 3.19-rc4.
