@@ -3,7 +3,7 @@ Section: kernel
 Priority: optional
 Maintainer: Robert Hooker <robert.hooker@canonical.com>
 XSBC-Original-Maintainer: Jack Leigh <jack.leigh@collabora.com>
-Build-Depends: debhelper (>=5), quilt
+Build-Depends: debhelper (>=5), quilt, dh-modaliases
 
 Package: i915-3.19-3.13-source
 Architecture: all
@@ -16,6 +16,7 @@ Description: Intel i915 video drivers from the mainline kernel,
 
 Package: i915-3.19-3.13-dkms
 Architecture: all
+XB-Modaliases: ${modaliases}
 Depends: debhelper, dkms, linux-headers, ${misc:Depends}
 Description: Intel i915 video drivers from the mainline kernel,
  backported from the 3.19 series to the 3.13 series.

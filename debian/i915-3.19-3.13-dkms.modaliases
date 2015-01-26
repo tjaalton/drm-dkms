@@ -1,0 +1,5 @@
+alias pci:v00008086d000022b0sv*sd*bc03sc*i* i915
+alias pci:v00008086d000022b1sv*sd*bc03sc*i* i915
+alias pci:v00008086d000022b2sv*sd*bc03sc*i* i915
+alias pci:v00008086d000022b3sv*sd*bc03sc*i* i915
+
