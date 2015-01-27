@@ -1,3 +1,9 @@
+i915-3.19-3.13 (3.19-rc6-3) trusty; urgency=medium
+
+  * Drop debhelper dependency for the dkms package.
+
+ -- Robert Hooker <sarvatt@ubuntu.com>  Tue, 27 Jan 2015 13:26:00 -0500
+
 i915-3.19-3.13 (3.19-rc6-2) trusty; urgency=medium
 
   * Update to 3.19-rc6
