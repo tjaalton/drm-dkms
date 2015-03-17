@@ -4895,23 +4895,22 @@ static void cherryview_set_cdclk(struct drm_device *dev, int cdclk)
 	WARN_ON(dev_priv->display.get_display_clock_speed(dev) != dev_priv->vlv_cdclk_freq);
 
 	switch (cdclk) {
-	case 400000:
-		cmd = 3;
-		break;
 	case 333333:
 	case 320000:
-		cmd = 2;
-		break;
 	case 266667:
-		cmd = 1;
-		break;
 	case 200000:
-		cmd = 0;
 		break;
 	default:
 		WARN_ON(1);
 		return;
 	}
+
+	/*
+	 * Specs are full of misinformation, but testing on actual
+	 * hardware has shown that we just need to write the desired
+	 * CCK divider into the Punit register.
+	 */
+	cmd = DIV_ROUND_CLOSEST(dev_priv->hpll_freq << 1, cdclk) - 1;
 
 	mutex_lock(&dev_priv->rps.hw_lock);
 	val = vlv_punit_read(dev_priv, PUNIT_REG_DSPFREQ);
@@ -4932,27 +4931,25 @@ static int valleyview_calc_cdclk(struct drm_i915_private *dev_priv,
 				 int max_pixclk)
 {
 	int freq_320 = (dev_priv->hpll_freq <<  1) % 320000 != 0 ? 333333 : 320000;
-
-	/* FIXME: Punit isn't quite ready yet */
-	if (IS_CHERRYVIEW(dev_priv->dev))
-		return 400000;
+	int limit = IS_CHERRYVIEW(dev_priv) ? 95 : 90;
 
 	/*
 	 * Really only a few cases to deal with, as only 4 CDclks are supported:
 	 *   200MHz
 	 *   267MHz
 	 *   320/333MHz (depends on HPLL freq)
-	 *   400MHz
-	 * So we check to see whether we're above 90% of the lower bin and
-	 * adjust if needed.
+	 *   400MHz (VLV only)
+	 * So we check to see whether we're above 90% (VLV) or 95% (CHV)
+	 * of the lower bin and adjust if needed.
 	 *
 	 * We seem to get an unstable or solid color picture at 200MHz.
 	 * Not sure what's wrong. For now use 200MHz only when all pipes
 	 * are off.
 	 */
-	if (max_pixclk > freq_320*9/10)
+	if (!IS_CHERRYVIEW(dev_priv) &&
+	    max_pixclk > freq_320*limit/100)
 		return 400000;
-	else if (max_pixclk > 266667*9/10)
+	else if (max_pixclk > 266667*limit/100)
 		return freq_320;
 	else if (max_pixclk > 0)
 		return 266667;
@@ -5618,10 +5615,6 @@ static int valleyview_get_display_clock_speed(struct drm_device *dev)
 	struct drm_i915_private *dev_priv = dev->dev_private;
 	u32 val;
 	int divider;
-
-	/* FIXME: Punit isn't quite ready yet */
-	if (IS_CHERRYVIEW(dev))
-		return 400000;
 
 	if (dev_priv->hpll_freq == 0)
 		dev_priv->hpll_freq = valleyview_get_vco(dev_priv);
