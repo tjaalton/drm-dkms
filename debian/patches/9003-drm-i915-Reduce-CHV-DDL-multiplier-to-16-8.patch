@@ -1,0 +1,73 @@
+From af31f9641f0883db57e6a40eb924f2e44232a40c Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Ville=20Syrj=C3=A4l=C3=A4?= <ville.syrjala@linux.intel.com>
+Date: Thu, 5 Mar 2015 21:19:41 +0200
+Subject: [PATCH 03/13] drm/i915: Reduce CHV DDL multiplier to 16/8
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Apparently we must yet halve the DDL drain latency from what we're
+using currently. This little nugget is not in any spec, but came
+down through the grapevine.
+
+This makes the displays a bit more stable. Not quite fully stable but at
+least they don't fall over immediately on driver load.
+
+v2: Update high_precision in valleyview_update_sprite_wm() too (Jesse)
+
+Reviewed-by: Jesse Barnes <jbarnes@virtuousgeek.org>
+Signed-off-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+---
+ drivers/gpu/drm/i915/i915_reg.h | 1 +
+ drivers/gpu/drm/i915/intel_pm.c | 8 ++++----
+ 2 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/i915_reg.h b/drivers/gpu/drm/i915/i915_reg.h
+index 172de3b..e8de558 100644
+--- a/drivers/gpu/drm/i915/i915_reg.h
++++ b/drivers/gpu/drm/i915/i915_reg.h
+@@ -4084,6 +4084,7 @@ enum punit_power_well {
+ #define   DSPFW_PLANEA_WM1_HI_MASK	(1<<0)
+ 
+ /* drain latency register values*/
++#define DRAIN_LATENCY_PRECISION_8	8
+ #define DRAIN_LATENCY_PRECISION_16	16
+ #define DRAIN_LATENCY_PRECISION_32	32
+ #define DRAIN_LATENCY_PRECISION_64	64
+diff --git a/drivers/gpu/drm/i915/intel_pm.c b/drivers/gpu/drm/i915/intel_pm.c
+index bf814a6..257d299 100644
+--- a/drivers/gpu/drm/i915/intel_pm.c
++++ b/drivers/gpu/drm/i915/intel_pm.c
+@@ -1357,8 +1357,8 @@ static bool vlv_compute_drain_latency(struct drm_crtc *crtc,
+ 
+ 	entries = DIV_ROUND_UP(clock, 1000) * pixel_size;
+ 	if (IS_CHERRYVIEW(dev))
+-		*prec_mult = (entries > 128) ? DRAIN_LATENCY_PRECISION_32 :
+-					       DRAIN_LATENCY_PRECISION_16;
++		*prec_mult = (entries > 32) ? DRAIN_LATENCY_PRECISION_16 :
++					      DRAIN_LATENCY_PRECISION_8;
+ 	else
+ 		*prec_mult = (entries > 128) ? DRAIN_LATENCY_PRECISION_64 :
+ 					       DRAIN_LATENCY_PRECISION_32;
+@@ -1388,7 +1388,7 @@ static void vlv_update_drain_latency(struct drm_crtc *crtc)
+ 	enum pipe pipe = intel_crtc->pipe;
+ 	int plane_prec, prec_mult, plane_dl;
+ 	const int high_precision = IS_CHERRYVIEW(dev) ?
+-		DRAIN_LATENCY_PRECISION_32 : DRAIN_LATENCY_PRECISION_64;
++		DRAIN_LATENCY_PRECISION_16 : DRAIN_LATENCY_PRECISION_64;
+ 
+ 	plane_dl = I915_READ(VLV_DDL(pipe)) & ~(DDL_PLANE_PRECISION_HIGH |
+ 		   DRAIN_LATENCY_MASK | DDL_CURSOR_PRECISION_HIGH |
+@@ -1587,7 +1587,7 @@ static void valleyview_update_sprite_wm(struct drm_plane *plane,
+ 	int sprite_dl;
+ 	int prec_mult;
+ 	const int high_precision = IS_CHERRYVIEW(dev) ?
+-		DRAIN_LATENCY_PRECISION_32 : DRAIN_LATENCY_PRECISION_64;
++		DRAIN_LATENCY_PRECISION_16 : DRAIN_LATENCY_PRECISION_64;
+ 
+ 	sprite_dl = I915_READ(VLV_DDL(pipe)) & ~(DDL_SPRITE_PRECISION_HIGH(sprite) |
+ 		    (DRAIN_LATENCY_MASK << DDL_SPRITE_SHIFT(sprite)));
+-- 
+1.9.1
+

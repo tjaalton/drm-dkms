@@ -1,0 +1,78 @@
+From 8958ed538976439d4374a78159290ec2e95478bc Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Ville=20Syrj=C3=A4l=C3=A4?= <ville.syrjala@linux.intel.com>
+Date: Thu, 5 Mar 2015 21:19:51 +0200
+Subject: [PATCH 12/13] drm/i915: Enable the maxfifo PM5 mode when appropriate
+ on CHV
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+CHV has a new knob in Punit to select between some memory power savings
+modes PM2 and PM5. We can allow the deeper PM5 when maxfifo mode is
+enabled, so let's do so in the hopes for moar power savings.
+
+v2: Put the thing into a separate function to avoid churn later
+v3: Don't break VLV
+
+Reviewed-by: Vijay Purushothaman <vijay.a.purushothaman@linux.intel.com>
+Signed-off-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
+Reviewed-by: Arun R Murthy <arun.r.murthy@intel.com>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+---
+ drivers/gpu/drm/i915/i915_reg.h |  3 +++
+ drivers/gpu/drm/i915/intel_pm.c | 18 ++++++++++++++++++
+ 2 files changed, 21 insertions(+)
+
+diff --git a/drivers/gpu/drm/i915/i915_reg.h b/drivers/gpu/drm/i915/i915_reg.h
+index 2cd9371..54d3c02d 100644
+--- a/drivers/gpu/drm/i915/i915_reg.h
++++ b/drivers/gpu/drm/i915/i915_reg.h
+@@ -545,6 +545,9 @@
+ #define   DSPFREQSTAT_MASK			(0x3 << DSPFREQSTAT_SHIFT)
+ #define   DSPFREQGUAR_SHIFT			14
+ #define   DSPFREQGUAR_MASK			(0x3 << DSPFREQGUAR_SHIFT)
++#define   DSP_MAXFIFO_PM5_STATUS		(1 << 22) /* chv */
++#define   DSP_AUTO_CDCLK_GATE_DISABLE		(1 << 7) /* chv */
++#define   DSP_MAXFIFO_PM5_ENABLE		(1 << 6) /* chv */
+ #define   _DP_SSC(val, pipe)			((val) << (2 * (pipe)))
+ #define   DP_SSC_MASK(pipe)			_DP_SSC(0x3, (pipe))
+ #define   DP_SSC_PWR_ON(pipe)			_DP_SSC(0x0, (pipe))
+diff --git a/drivers/gpu/drm/i915/intel_pm.c b/drivers/gpu/drm/i915/intel_pm.c
+index 599e024..f334f2a 100644
+--- a/drivers/gpu/drm/i915/intel_pm.c
++++ b/drivers/gpu/drm/i915/intel_pm.c
+@@ -864,6 +864,22 @@ static const struct cxsr_latency *intel_get_cxsr_latency(int is_desktop,
+ 	return NULL;
+ }
+ 
++static void chv_set_memory_pm5(struct drm_i915_private *dev_priv, bool enable)
++{
++	u32 val;
++
++	mutex_lock(&dev_priv->rps.hw_lock);
++
++	val = vlv_punit_read(dev_priv, PUNIT_REG_DSPFREQ);
++	if (enable)
++		val |= DSP_MAXFIFO_PM5_ENABLE;
++	else
++		val &= ~DSP_MAXFIFO_PM5_ENABLE;
++	vlv_punit_write(dev_priv, PUNIT_REG_DSPFREQ, val);
++
++	mutex_unlock(&dev_priv->rps.hw_lock);
++}
++
+ void intel_set_memory_cxsr(struct drm_i915_private *dev_priv, bool enable)
+ {
+ 	struct drm_device *dev = dev_priv->dev;
+@@ -871,6 +887,8 @@ void intel_set_memory_cxsr(struct drm_i915_private *dev_priv, bool enable)
+ 
+ 	if (IS_VALLEYVIEW(dev)) {
+ 		I915_WRITE(FW_BLC_SELF_VLV, enable ? FW_CSPWRDWNEN : 0);
++		if (IS_CHERRYVIEW(dev))
++			chv_set_memory_pm5(dev_priv, enable);
+ 	} else if (IS_G4X(dev) || IS_CRESTLINE(dev)) {
+ 		I915_WRITE(FW_BLC_SELF, enable ? FW_BLC_SELF_EN : 0);
+ 	} else if (IS_PINEVIEW(dev)) {
+-- 
+1.9.1
+

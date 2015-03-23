@@ -23,3 +23,17 @@ revert-drm-atomic-helpers-document-how-to-implement-.patch
 revert-drm-atomic-Integrate-fence-support.patch
 revert-drm-i915-make-system-freeze-support-depend-on.patch
 revert-drm-i915-send-proper-opregion-notifications-o.patch
+9001-drm-i915-Fix-chv-cdclk-support.patch
+9002-drm-i915-Allow-pixel-clock-up-to-95-of-cdclk-on-CHV.patch
+9003-drm-i915-Reduce-CHV-DDL-multiplier-to-16-8.patch
+9004-drm-i915-Kill-DRAIN_LATENCY_PRECISION_-defines.patch
+9005-drm-i915-Simplify-VLV-drain-latency-computation.patch
+9006-drm-i915-Hide-VLV-DDL-precision-handling.patch
+9007-drm-i915-Reorganize-VLV-DDL-setup.patch
+9008-drm-i915-Pass-plane-to-vlv_compute_drain_latency.patch
+9009-drm-i915-Read-out-display-FIFO-size-on-VLV-CHV.patch
+9010-drm-i915-Make-sure-PND-deadline-mode-is-enabled-on-V.patch
+9011-drm-i915-Rewrite-VLV-CHV-watermark-code.patch
+9012-drm-i915-Enable-the-maxfifo-PM5-mode-when-appropriat.patch
+9013-drm-i915-Disable-DDR-DVFS-on-CHV.patch
+#9014-fixup.patch

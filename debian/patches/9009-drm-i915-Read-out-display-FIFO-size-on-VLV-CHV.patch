@@ -1,0 +1,115 @@
+From 69c8ba20ed9594179fd0edfbfdc2cbfb4ddde848 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Ville=20Syrj=C3=A4l=C3=A4?= <ville.syrjala@linux.intel.com>
+Date: Thu, 5 Mar 2015 21:19:47 +0200
+Subject: [PATCH 09/13] drm/i915: Read out display FIFO size on VLV/CHV
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+VLV/CHV have similar DSPARB registers as older platforms, just more of
+them due to more planes. Add a bit of code to read out the current FIFO
+split from the registers. Will be useful later when we improve the WM
+calculations.
+
+v2: Add display_mmio_offset to DSPARB
+
+Reviewed-by: Jesse Barnes <jbarnes@virtuousgeek.org>
+Signed-off-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+---
+ drivers/gpu/drm/i915/i915_reg.h |  5 +++-
+ drivers/gpu/drm/i915/intel_pm.c | 55 +++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 59 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/i915/i915_reg.h b/drivers/gpu/drm/i915/i915_reg.h
+index da8e993..63ad90a 100644
+--- a/drivers/gpu/drm/i915/i915_reg.h
++++ b/drivers/gpu/drm/i915/i915_reg.h
+@@ -3944,7 +3944,7 @@ enum punit_power_well {
+ #define   DPINVGTT_STATUS_MASK			0xff
+ #define   DPINVGTT_STATUS_MASK_CHV		0xfff
+ 
+-#define DSPARB			0x70030
++#define DSPARB			(dev_priv->info.display_mmio_offset + 0x70030)
+ #define   DSPARB_CSTART_MASK	(0x7f << 7)
+ #define   DSPARB_CSTART_SHIFT	7
+ #define   DSPARB_BSTART_MASK	(0x7f)
+@@ -3952,6 +3952,9 @@ enum punit_power_well {
+ #define   DSPARB_BEND_SHIFT	9 /* on 855 */
+ #define   DSPARB_AEND_SHIFT	0
+ 
++#define DSPARB2			(VLV_DISPLAY_BASE + 0x70060) /* vlv/chv */
++#define DSPARB3			(VLV_DISPLAY_BASE + 0x7006c) /* chv */
++
+ /* pnv/gen4/g4x/vlv/chv */
+ #define DSPFW1			(dev_priv->info.display_mmio_offset + 0x70034)
+ #define   DSPFW_SR_SHIFT		23
+diff --git a/drivers/gpu/drm/i915/intel_pm.c b/drivers/gpu/drm/i915/intel_pm.c
+index 3b0b58e..a8542c1 100644
+--- a/drivers/gpu/drm/i915/intel_pm.c
++++ b/drivers/gpu/drm/i915/intel_pm.c
+@@ -909,6 +909,61 @@ void intel_set_memory_cxsr(struct drm_i915_private *dev_priv, bool enable)
+  */
+ static const int pessimal_latency_ns = 5000;
+ 
++#define VLV_FIFO_START(dsparb, dsparb2, lo_shift, hi_shift) \
++	((((dsparb) >> (lo_shift)) & 0xff) | ((((dsparb2) >> (hi_shift)) & 0x1) << 8))
++
++static int vlv_get_fifo_size(struct drm_device *dev,
++			      enum pipe pipe, int plane)
++{
++	struct drm_i915_private *dev_priv = dev->dev_private;
++	int sprite0_start, sprite1_start, size;
++
++	switch (pipe) {
++		uint32_t dsparb, dsparb2, dsparb3;
++	case PIPE_A:
++		dsparb = I915_READ(DSPARB);
++		dsparb2 = I915_READ(DSPARB2);
++		sprite0_start = VLV_FIFO_START(dsparb, dsparb2, 0, 0);
++		sprite1_start = VLV_FIFO_START(dsparb, dsparb2, 8, 4);
++		break;
++	case PIPE_B:
++		dsparb = I915_READ(DSPARB);
++		dsparb2 = I915_READ(DSPARB2);
++		sprite0_start = VLV_FIFO_START(dsparb, dsparb2, 16, 8);
++		sprite1_start = VLV_FIFO_START(dsparb, dsparb2, 24, 12);
++		break;
++	case PIPE_C:
++		dsparb2 = I915_READ(DSPARB2);
++		dsparb3 = I915_READ(DSPARB3);
++		sprite0_start = VLV_FIFO_START(dsparb3, dsparb2, 0, 16);
++		sprite1_start = VLV_FIFO_START(dsparb3, dsparb2, 8, 20);
++		break;
++	default:
++		return 0;
++	}
++
++	switch (plane) {
++	case 0:
++		size = sprite0_start;
++		break;
++	case 1:
++		size = sprite1_start - sprite0_start;
++		break;
++	case 2:
++		size = 512 - 1 - sprite1_start;
++		break;
++	default:
++		return 0;
++	}
++
++	DRM_DEBUG_KMS("Pipe %c %s %c FIFO size: %d\n",
++		      pipe_name(pipe), plane == 0 ? "primary" : "sprite",
++		      plane == 0 ? plane_name(pipe) : sprite_name(pipe, plane - 1),
++		      size);
++
++	return size;
++}
++
+ static int i9xx_get_fifo_size(struct drm_device *dev, int plane)
+ {
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+-- 
+1.9.1
+

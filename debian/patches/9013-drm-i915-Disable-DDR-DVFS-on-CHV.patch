@@ -1,0 +1,111 @@
+From 376bdef27238e18641fc35adeb745e088730f2c7 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Ville=20Syrj=C3=A4l=C3=A4?= <ville.syrjala@linux.intel.com>
+Date: Thu, 5 Mar 2015 21:19:52 +0200
+Subject: [PATCH 13/13] drm/i915: Disable DDR DVFS on CHV
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+DDR DVFS introduces massive memory latencies which can't be handled by
+the PND deadline stuff. Instead the watermarks will need to be
+programmed to compensate for the latency and the deadlines will need to
+be programmed to tight fixed values. That means DDR DVFS can only be
+enabled if the display FIFOs are large enough, and that pretty much
+means we have to manually repartition them to suit the needs of the
+moment.
+
+That's a lot of change, so in the meantime let's just disable DDR DVFS
+to get the display(s) to be stable.
+
+Signed-off-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
+Reviewed-by: Jesse Barnes <jbarnes@virtuousgeek.org>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+
+(Backported to 3.19)
+Signed-off-by: Robert Hooker <robert.hooker@canonical.com>
+
+Conflicts:
+	drivers/gpu/drm/i915/i915_reg.h
+---
+ drivers/gpu/drm/i915/i915_reg.h |  5 +++++
+ drivers/gpu/drm/i915/intel_pm.c | 34 ++++++++++++++++++++++++++++++++++
+ 2 files changed, 39 insertions(+)
+
+diff --git a/drivers/gpu/drm/i915/i915_reg.h b/drivers/gpu/drm/i915/i915_reg.h
+index 54d3c02d..fba139d 100644
+--- a/drivers/gpu/drm/i915/i915_reg.h
++++ b/drivers/gpu/drm/i915/i915_reg.h
+@@ -601,6 +601,11 @@ enum punit_power_well {
+ #define PUNIT_FUSE_BUS2				0xf6 /* bits 47:40 */
+ #define PUNIT_FUSE_BUS1				0xf5 /* bits 55:48 */
+ 
++#define PUNIT_REG_DDR_SETUP2			0x139
++#define   FORCE_DDR_FREQ_REQ_ACK		(1 << 8)
++#define   FORCE_DDR_LOW_FREQ			(1 << 1)
++#define   FORCE_DDR_HIGH_FREQ			(1 << 0)
++
+ #define PUNIT_GPU_STATUS_REG			0xdb
+ #define PUNIT_GPU_STATUS_MAX_FREQ_SHIFT	16
+ #define PUNIT_GPU_STATUS_MAX_FREQ_MASK		0xff
+diff --git a/drivers/gpu/drm/i915/intel_pm.c b/drivers/gpu/drm/i915/intel_pm.c
+index f334f2a..ded8f6b 100644
+--- a/drivers/gpu/drm/i915/intel_pm.c
++++ b/drivers/gpu/drm/i915/intel_pm.c
+@@ -864,6 +864,28 @@ static const struct cxsr_latency *intel_get_cxsr_latency(int is_desktop,
+ 	return NULL;
+ }
+ 
++static void chv_set_memory_dvfs(struct drm_i915_private *dev_priv, bool enable)
++{
++	u32 val;
++
++	mutex_lock(&dev_priv->rps.hw_lock);
++
++	val = vlv_punit_read(dev_priv, PUNIT_REG_DDR_SETUP2);
++	if (enable)
++		val &= ~FORCE_DDR_HIGH_FREQ;
++	else
++		val |= FORCE_DDR_HIGH_FREQ;
++	val &= ~FORCE_DDR_LOW_FREQ;
++	val |= FORCE_DDR_FREQ_REQ_ACK;
++	vlv_punit_write(dev_priv, PUNIT_REG_DDR_SETUP2, val);
++
++	if (wait_for((vlv_punit_read(dev_priv, PUNIT_REG_DDR_SETUP2) &
++		      FORCE_DDR_FREQ_REQ_ACK) == 0, 3))
++		DRM_ERROR("timed out waiting for Punit DDR DVFS request\n");
++
++	mutex_unlock(&dev_priv->rps.hw_lock);
++}
++
+ static void chv_set_memory_pm5(struct drm_i915_private *dev_priv, bool enable)
+ {
+ 	u32 val;
+@@ -911,6 +933,7 @@ void intel_set_memory_cxsr(struct drm_i915_private *dev_priv, bool enable)
+ 		      enable ? "enabled" : "disabled");
+ }
+ 
++
+ /*
+  * Latency for FIFO fetches is dependent on several factors:
+  *   - memory configuration (speed, channels)
+@@ -1621,6 +1644,17 @@ static void valleyview_update_wm(struct drm_crtc *crtc)
+ 		      wm.pipe[pipe].primary, wm.pipe[pipe].cursor,
+ 		      wm.sr.plane, wm.sr.cursor);
+ 
++	/*
++	 * FIXME DDR DVFS introduces massive memory latencies which
++	 * are not known to system agent so any deadline specified
++	 * by the display may not be respected. To support DDR DVFS
++	 * the watermark code needs to be rewritten to essentially
++	 * bypass deadline mechanism and rely solely on the
++	 * watermarks. For now disable DDR DVFS.
++	 */
++	if (IS_CHERRYVIEW(dev_priv))
++		chv_set_memory_dvfs(dev_priv, false);
++
+ 	if (!cxsr_enabled)
+ 		intel_set_memory_cxsr(dev_priv, false);
+ 
+-- 
+1.9.1
+
