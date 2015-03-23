@@ -23,4 +23,3 @@ revert-drm-atomic-helpers-document-how-to-implement-.patch
 revert-drm-atomic-Integrate-fence-support.patch
 revert-drm-i915-make-system-freeze-support-depend-on.patch
 revert-drm-i915-send-proper-opregion-notifications-o.patch
-i915-fixup.patch
