@@ -33,7 +33,7 @@ revert-drm-i915-send-proper-opregion-notifications-o.patch
 9008-drm-i915-Pass-plane-to-vlv_compute_drain_latency.patch
 9009-drm-i915-Read-out-display-FIFO-size-on-VLV-CHV.patch
 9010-drm-i915-Make-sure-PND-deadline-mode-is-enabled-on-V.patch
-9011-drm-i915-Rewrite-VLV-CHV-watermark-code.patch
+#9011-drm-i915-Rewrite-VLV-CHV-watermark-code.patch
 9012-drm-i915-Enable-the-maxfifo-PM5-mode-when-appropriat.patch
-9013-drm-i915-Disable-DDR-DVFS-on-CHV.patch
+#9013-drm-i915-Disable-DDR-DVFS-on-CHV.patch
 #9014-fixup.patch

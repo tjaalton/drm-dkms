@@ -187,12 +187,12 @@ index ce3a704..599e024 100644
 +	 * FIXME the plane might have an fb
 +	 * but be invisible (eg. due to clipping)
 +	 */
-+	if (!crtc->active || !plane->state->fb)
++	if (!crtc->active || !plane->base.state->fb)
 +		return 0;
  
 -	vlv_write_wm_values(intel_crtc, &wm);
 -}
-+	pixel_size = drm_format_plane_cpp(plane->state->fb->pixel_format, 0);
++	pixel_size = drm_format_plane_cpp(plane->base.state->fb->pixel_format, 0);
 +	clock = crtc->config.adjusted_mode.crtc_clock;
  
 -#define single_plane_enabled(mask) is_power_of_2(mask)
