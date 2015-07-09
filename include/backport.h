@@ -39,3 +39,6 @@ static inline void __iomem *acpi_os_ioremap(acpi_physical_address phys,
 #define module_param_cb_unsafe(name, ops, arg, perm)                      \
 	__module_param_call(MODULE_PARAM_PREFIX, name, ops, arg, perm, -1)
 
+#undef dma_buf_export
+#define dma_buf_export(priv, ops, size, flags, resv)   \
+       dma_buf_export_named(priv, ops, size, flags, KBUILD_MODNAME)

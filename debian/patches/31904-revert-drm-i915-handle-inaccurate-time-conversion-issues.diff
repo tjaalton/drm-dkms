@@ -1,3 +1,5 @@
+revert 9cca30688043eb1b6569f794041dfeec218dffa5
+
 --- a/drivers/gpu/drm/i915/i915_gem.c
 +++ b/drivers/gpu/drm/i915/i915_gem.c
 @@ -1304,16 +1304,6 @@ int __i915_wait_seqno(struct intel_engin

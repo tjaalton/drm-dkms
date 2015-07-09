@@ -95,3 +95,35 @@
  /**
   * DOC: dp helpers
   *
+--- a/drivers/gpu/drm/i915/i915_params.c
++++ b/drivers/gpu/drm/i915/i915_params.c
+@@ -24,6 +24,8 @@
+ 
+ #include "i915_drv.h"
+ 
++#include <backport.h>
++
+ struct i915_params i915 __read_mostly = {
+ 	.modeset = -1,
+ 	.panel_ignore_lid = 1,
+--- a/drivers/gpu/drm/drm_prime.c
++++ b/drivers/gpu/drm/drm_prime.c
+@@ -33,6 +33,7 @@
+ 
+ #include "drm_internal.h"
+ 
++#include "backport.h"
+ /*
+  * DMA-BUF/GEM Object references and lifetime overview:
+  *
+--- a/drivers/gpu/drm/i915/i915_gem_dmabuf.c
++++ b/drivers/gpu/drm/i915/i915_gem_dmabuf.c
+@@ -27,6 +27,8 @@
+ #include "i915_drv.h"
+ #include <linux/dma-buf.h>
+ 
++#include <backport.h>
++
+ static struct drm_i915_gem_object *dma_buf_to_obj(struct dma_buf *buf)
+ {
+ 	return to_intel_bo(buf->priv);
