@@ -18,7 +18,9 @@ I915_ITEMS  := i915_drv \
                i915_sysfs \
                intel_pm \
 	       intel_runtime_pm \
+               intel_csr \
                i915_cmd_parser \
+               i915_gem_batch_pool \
                i915_gem_context \
                i915_gem_render_state \
                i915_gem_debug \
@@ -27,12 +29,14 @@ I915_ITEMS  := i915_drv \
                i915_gem_execbuffer \
                i915_gem_gtt \
                i915_gem \
+               i915_gem_shrinker \
                i915_gem_stolen \
                i915_gem_tiling \
                i915_gem_userptr \
                i915_gpu_error \
                i915_irq \
                i915_trace_points \
+               i915_vgpu \
 	       intel_lrc \
                intel_ringbuffer \
                intel_uncore \
@@ -43,6 +47,7 @@ I915_ITEMS  := i915_drv \
 	       intel_audio \
                intel_bios \
                intel_display \
+               intel_fbc \
 	       intel_fifo_underrun \
 	       intel_frontbuffer \
                intel_modes \
@@ -56,11 +61,12 @@ I915_ITEMS  := i915_drv \
                dvo_ns2501 \
                dvo_sil164 \
                dvo_tfp410 \
+               intel_atomic \
+               intel_atomic_plane \
                intel_crt \
                intel_ddi \
                intel_dp \
 	       intel_dp_mst \
-               intel_dsi_cmd \
                intel_dsi \
                intel_dsi_pll \
                intel_dsi_panel_vbt \
@@ -71,8 +77,7 @@ I915_ITEMS  := i915_drv \
                intel_panel \
                intel_sdvo \
                intel_tv \
-               i915_dma \
-               i915_ums
+               i915_dma
 
 DRM_ITEMS   := drm_auth drm_bufs drm_cache \
                drm_context drm_dma \
@@ -84,7 +89,7 @@ DRM_ITEMS   := drm_auth drm_bufs drm_cache \
                drm_info drm_debugfs drm_encoder_slave \
                drm_trace_points drm_global drm_prime \
                drm_rect drm_vma_manager drm_flip_work \
-               drm_modeset_lock drm_atomic
+               drm_modeset_lock drm_atomic drm_bridge
 
 # this prioritises the DKMS package include directories over the kernel headers
 # allowing us to override header files where the 3.12.x versions have extra
