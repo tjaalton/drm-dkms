@@ -1,10 +1,10 @@
-Source: i915-3.19-3.13
+Source: i915-4.2-3.13
 Section: kernel
 Priority: optional
 Maintainer: Jack Leigh <jack.leigh@collabora.com>
 Build-Depends: debhelper (>=5)
 
-Package: i915-3.19-3.13-_KVERS_
+Package: i915-4.2-3.13-_KVERS_
 Architecture: any
 Depends: linux-modules-_KVERS_ | linux-image-_KVERS_
 Provides: i915-modules
