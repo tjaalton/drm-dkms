@@ -24,3 +24,18 @@ static inline void __iomem *acpi_os_ioremap(acpi_physical_address phys,
        return ioremap_cache(phys, size);
 }
 
+#define cpu_relax_lowlatency() cpu_relax()
+
+#define DIV_ROUND_CLOSEST_ULL(ll, d)	\
+({ unsigned long long _tmp = (ll)+(d)/2; do_div(_tmp, d); _tmp; })
+
+#include <linux/moduleparam.h>
+#define module_param_unsafe(name, type, perm)                  \
+	module_param_named_unsafe(name, name, type, perm)
+#define module_param_named_unsafe(name, value, type, perm)             \
+	param_check_##type(name, &(value));                            \
+	module_param_cb_unsafe(name, &param_ops_##type, &value, perm); \
+	__MODULE_PARM_TYPE(name, #type)
+#define module_param_cb_unsafe(name, ops, arg, perm)                      \
+	__module_param_call(MODULE_PARAM_PREFIX, name, ops, arg, perm, -1)
+

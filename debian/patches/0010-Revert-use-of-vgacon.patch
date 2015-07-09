@@ -6,16 +6,17 @@ This reverts commit 1bb9e632a0aeee1121e652ee4dc80e5e6f14bcd2.
 This reverts commit a4de05268e674e8ed31df6348269e22d6c6a1803.
 
 >From 3.16.2.
+
+also reverts f96de58fc7e7d3d717c7c63975c3b896c906b5e3
+and 0485c9dc24ec0939b42ca5104c0373297506b555.
 ---
  drivers/gpu/drm/i915/i915_dma.c | 44 +----------------------------------------
  1 file changed, 1 insertion(+), 43 deletions(-)
 
-diff --git a/drivers/gpu/drm/i915/i915_dma.c b/drivers/gpu/drm/i915/i915_dma.c
-index 059d62a..60fca5d 100644
 --- a/drivers/gpu/drm/i915/i915_dma.c
 +++ b/drivers/gpu/drm/i915/i915_dma.c
-@@ -36,8 +36,6 @@
- #include "i915_drv.h"
+@@ -39,8 +39,6 @@
+ #include "i915_vgpu.h"
  #include "i915_trace.h"
  #include <linux/pci.h>
 -#include <linux/console.h>
@@ -23,10 +24,43 @@ index 059d62a..60fca5d 100644
  #include <linux/vgaarb.h>
  #include <linux/acpi.h>
  #include <linux/pnp.h>
-@@ -1453,39 +1451,6 @@ static void i915_kick_out_firmware_fb(struct drm_i915_private *dev_priv)
+@@ -481,16 +479,15 @@ out:
  }
- #endif
  
+ #if IS_ENABLED(CONFIG_FB)
+-static int i915_kick_out_firmware_fb(struct drm_i915_private *dev_priv)
++static void i915_kick_out_firmware_fb(struct drm_i915_private *dev_priv)
+ {
+ 	struct apertures_struct *ap;
+ 	struct pci_dev *pdev = dev_priv->dev->pdev;
+ 	bool primary;
+-	int ret;
+ 
+ 	ap = alloc_apertures(1);
+ 	if (!ap)
+-		return -ENOMEM;
++		return;
+ 
+ 	ap->ranges[0].base = dev_priv->gtt.mappable_base;
+ 	ap->ranges[0].size = dev_priv->gtt.mappable_end;
+@@ -498,49 +495,14 @@ static int i915_kick_out_firmware_fb(str
+ 	primary =
+ 		pdev->resource[PCI_ROM_RESOURCE].flags & IORESOURCE_ROM_SHADOW;
+ 
+-	ret = remove_conflicting_framebuffers(ap, "inteldrmfb", primary);
++	remove_conflicting_framebuffers(ap, "inteldrmfb", primary);
+ 
+ 	kfree(ap);
+ 
+-	return ret;
+-}
+-#else
+-static int i915_kick_out_firmware_fb(struct drm_i915_private *dev_priv)
+-{
+-	return 0;
+-}
+-#endif
+-
 -#if !defined(CONFIG_VGA_CONSOLE)
 -static int i915_kick_out_vgacon(struct drm_i915_private *dev_priv)
 -{
@@ -36,10 +70,11 @@ index 059d62a..60fca5d 100644
 -static int i915_kick_out_vgacon(struct drm_i915_private *dev_priv)
 -{
 -	return -ENODEV;
--}
--#else
+ }
+ #else
 -static int i915_kick_out_vgacon(struct drm_i915_private *dev_priv)
--{
++static void i915_kick_out_firmware_fb(struct drm_i915_private *dev_priv)
+ {
 -	int ret = 0;
 -
 -	DRM_INFO("Replacing VGA console driver\n");
@@ -57,26 +92,27 @@ index 059d62a..60fca5d 100644
 -	console_unlock();
 -
 -	return ret;
--}
--#endif
--
- static void i915_dump_device_info(struct drm_i915_private *dev_priv)
- {
- 	const struct intel_device_info *info = &dev_priv->info;
-@@ -1659,15 +1624,8 @@ int i915_driver_load(struct drm_device *dev, unsigned long flags)
- 	if (ret)
- 		goto out_regs;
+ }
+ #endif
  
--	if (drm_core_check_feature(dev, DRIVER_MODESET)) {
--		ret = i915_kick_out_vgacon(dev_priv);
--		if (ret) {
--			DRM_ERROR("failed to remove conflicting VGA console\n");
--			goto out_gtt;
--		}
--
-+	if (drm_core_check_feature(dev, DRIVER_MODESET))
- 		i915_kick_out_firmware_fb(dev_priv);
+@@ -869,19 +831,7 @@ int i915_driver_load(struct drm_device *
+ 	if (ret)
+ 		goto out_freecsr;
+ 
+-	/* WARNING: Apparently we must kick fbdev drivers before vgacon,
+-	 * otherwise the vga fbdev driver falls over. */
+-	ret = i915_kick_out_firmware_fb(dev_priv);
+-	if (ret) {
+-		DRM_ERROR("failed to remove conflicting framebuffer drivers\n");
+-		goto out_gtt;
 -	}
+-
+-	ret = i915_kick_out_vgacon(dev_priv);
+-	if (ret) {
+-		DRM_ERROR("failed to remove conflicting VGA console\n");
+-		goto out_gtt;
+-	}
++	i915_kick_out_firmware_fb(dev_priv);
  
  	pci_set_master(dev->pdev);
  

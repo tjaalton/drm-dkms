@@ -1,0 +1,45 @@
+From 7f6205c5527b1adb5a4423b208ed56d236d8c7c7 Mon Sep 17 00:00:00 2001
+From: Timo Aaltonen <timo.aaltonen@canonical.com>
+Date: Thu, 9 Jul 2015 15:57:49 +0300
+Subject: [PATCH] Revert "x86/mm/mtrr: Avoid #ifdeffery with
+ phys_wc_to_mtrr_index()"
+
+This reverts commit 7d010fdf299929f9583ce5e17da629dcd83c36ef.
+---
+ drivers/gpu/drm/drm_ioctl.c     | 14 +++++++++++++-
+
+diff --git a/drivers/gpu/drm/drm_ioctl.c b/drivers/gpu/drm/drm_ioctl.c
+index b1d303f..e4beca5 100644
+--- a/drivers/gpu/drm/drm_ioctl.c
++++ b/drivers/gpu/drm/drm_ioctl.c
+@@ -36,6 +36,9 @@
+ 
+ #include <linux/pci.h>
+ #include <linux/export.h>
++#ifdef CONFIG_X86
++#include <asm/mtrr.h>
++#endif
+ 
+ static int drm_version(struct drm_device *dev, void *data,
+ 		       struct drm_file *file_priv);
+@@ -194,7 +197,16 @@ static int drm_getmap(struct drm_device *dev, void *data,
+ 	map->type = r_list->map->type;
+ 	map->flags = r_list->map->flags;
+ 	map->handle = (void *)(unsigned long) r_list->user_token;
+-	map->mtrr = arch_phys_wc_index(r_list->map->mtrr);
++
++#ifdef CONFIG_X86
++	/*
++	 * There appears to be exactly one user of the mtrr index: dritest.
++	 * It's easy enough to keep it working on non-PAT systems.
++	 */
++	map->mtrr = phys_wc_to_mtrr_index(r_list->map->mtrr);
++#else
++	map->mtrr = -1;
++#endif
+ 
+ 	mutex_unlock(&dev->struct_mutex);
+ 
+-- 
+2.1.4
+

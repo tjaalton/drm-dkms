@@ -1,11 +1,9 @@
 This is a squash of 16e9a21f33cda9d48b70ff54e1ed2e4a77497bc6 and
 5ed0bdf21a85d78e04f89f15ccf227562177cbd9 reverts
 
-diff --git a/drivers/gpu/drm/i915/i915_drv.h b/drivers/gpu/drm/i915/i915_drv.h
-index 63bcda5..9fc6a00 100644
 --- a/drivers/gpu/drm/i915/i915_drv.h
 +++ b/drivers/gpu/drm/i915/i915_drv.h
-@@ -1055,7 +1055,7 @@ struct intel_ilk_power_mgmt {
+@@ -1125,7 +1125,7 @@ struct intel_ilk_power_mgmt {
  	unsigned long last_time1;
  	unsigned long chipset_power;
  	u64 last_count2;
@@ -14,19 +12,27 @@ index 63bcda5..9fc6a00 100644
  	unsigned long gfx_power;
  	u8 corr;
  
-diff --git a/drivers/gpu/drm/i915/i915_gem.c b/drivers/gpu/drm/i915/i915_gem.c
-index 4a9faea..764195f 100644
---- a/drivers/gpu/drm/i915/i915_gem.c
-+++ b/drivers/gpu/drm/i915/i915_gem.c
-@@ -1210,16 +1210,16 @@ static bool can_wait_boost(struct drm_i915_file_private *file_priv)
- int __i915_wait_seqno(struct intel_engine_cs *ring, u32 seqno,
+@@ -2873,7 +2873,7 @@ int __i915_add_request(struct intel_engi
+ int __i915_wait_request(struct drm_i915_gem_request *req,
  			unsigned reset_counter,
  			bool interruptible,
 -			s64 *timeout,
 +			struct timespec *timeout,
- 			struct drm_i915_file_private *file_priv)
+ 			struct intel_rps_client *rps);
+ int __must_check i915_wait_request(struct drm_i915_gem_request *req);
+ int i915_gem_fault(struct vm_area_struct *vma, struct vm_fault *vmf);
+--- a/drivers/gpu/drm/i915/i915_gem.c
++++ b/drivers/gpu/drm/i915/i915_gem.c
+@@ -1222,7 +1222,7 @@ static int __i915_spin_request(struct dr
+ int __i915_wait_request(struct drm_i915_gem_request *req,
+ 			unsigned reset_counter,
+ 			bool interruptible,
+-			s64 *timeout,
++			struct timespec *timeout,
+ 			struct intel_rps_client *rps)
  {
- 	struct drm_device *dev = ring->dev;
+ 	struct intel_engine_cs *ring = i915_gem_request_get_ring(req);
+@@ -1230,9 +1230,9 @@ int __i915_wait_request(struct drm_i915_
  	struct drm_i915_private *dev_priv = dev->dev_private;
  	const bool irq_test_in_progress =
  		ACCESS_ONCE(dev_priv->gpu_error.test_irq_rings) & intel_ring_flag(ring);
@@ -37,36 +43,31 @@ index 4a9faea..764195f 100644
  	int ret;
  
  	WARN(!intel_irqs_enabled(dev_priv), "IRQs disabled");
-@@ -1227,8 +1227,7 @@ int __i915_wait_seqno(struct intel_engine_cs *ring, u32 seqno,
- 	if (i915_seqno_passed(ring->get_seqno(ring, true), seqno))
+@@ -1243,15 +1243,14 @@ int __i915_wait_request(struct drm_i915_
+ 	if (i915_gem_request_completed(req, true))
  		return 0;
  
 -	timeout_expire = timeout ?
 -		jiffies + nsecs_to_jiffies_timeout((u64)*timeout) : 0;
 +	timeout_expire = timeout ? jiffies + timespec_to_jiffies_timeout(timeout) : 0;
  
- 	if (INTEL_INFO(dev)->gen >= 6 && ring->id == RCS && can_wait_boost(file_priv)) {
- 		gen6_rps_boost(dev_priv);
-@@ -1243,7 +1242,7 @@ int __i915_wait_seqno(struct intel_engine_cs *ring, u32 seqno,
+ 	if (INTEL_INFO(dev_priv)->gen >= 6)
+ 		gen6_rps_boost(dev_priv, rps, req->emitted_jiffies);
  
  	/* Record current time in case interrupted by signal, or wedged */
- 	trace_i915_gem_request_wait_begin(ring, seqno);
+ 	trace_i915_gem_request_wait_begin(req);
 -	before = ktime_get_raw_ns();
 +	getrawmonotonic(&before);
- 	for (;;) {
- 		struct timer_list timer;
  
-@@ -1292,7 +1291,7 @@ int __i915_wait_seqno(struct intel_engine_cs *ring, u32 seqno,
- 			destroy_timer_on_stack(&timer);
- 		}
- 	}
+ 	/* Optimistic spin for the next jiffie before touching IRQs */
+ 	ret = __i915_spin_request(req);
+@@ -1317,13 +1316,14 @@ int __i915_wait_request(struct drm_i915_
+ 	finish_wait(&ring->irq_queue, &wait);
+ 
+ out:
 -	now = ktime_get_raw_ns();
 +	getrawmonotonic(&now);
- 	trace_i915_gem_request_wait_end(ring, seqno);
- 
- 	if (!irq_test_in_progress)
-@@ -1301,9 +1300,10 @@ int __i915_wait_seqno(struct intel_engine_cs *ring, u32 seqno,
- 	finish_wait(&ring->irq_queue, &wait);
+ 	trace_i915_gem_request_wait_end(req);
  
  	if (timeout) {
 -		s64 tres = *timeout - (now - before);
@@ -79,14 +80,14 @@ index 4a9faea..764195f 100644
  
  		/*
  		 * Apparently ktime isn't accurate enough and occasionally has a
-@@ -2914,10 +2914,16 @@ i915_gem_wait_ioctl(struct drm_device *dev, void *data, struct drm_file *file)
+@@ -3000,10 +3000,16 @@ i915_gem_wait_ioctl(struct drm_device *d
  	struct drm_i915_gem_wait *args = data;
  	struct drm_i915_gem_object *obj;
- 	struct intel_engine_cs *ring = NULL;
+ 	struct drm_i915_gem_request *req[I915_NUM_RINGS];
 +	struct timespec timeout_stack, *timeout = NULL;
  	unsigned reset_counter;
- 	u32 seqno = 0;
- 	int ret = 0;
+ 	int i, n = 0;
+ 	int ret;
  
 +	if (args->timeout_ns >= 0) {
 +		timeout_stack = ns_to_timespec(args->timeout_ns);
@@ -96,33 +97,30 @@ index 4a9faea..764195f 100644
  	if (args->flags != 0)
  		return -EINVAL;
  
-@@ -2947,7 +2953,7 @@ i915_gem_wait_ioctl(struct drm_device *dev, void *data, struct drm_file *file)
+@@ -3028,7 +3034,7 @@ i915_gem_wait_ioctl(struct drm_device *d
  	/* Do this after OLR check to make sure we make forward progress polling
- 	 * on this IOCTL with a timeout <=0 (like busy ioctl)
+ 	 * on this IOCTL with a timeout == 0 (like busy ioctl)
  	 */
--	if (args->timeout_ns <= 0) {
+-	if (args->timeout_ns == 0) {
 +	if (!args->timeout_ns) {
  		ret = -ETIME;
  		goto out;
  	}
-@@ -2956,8 +2962,10 @@ i915_gem_wait_ioctl(struct drm_device *dev, void *data, struct drm_file *file)
- 	reset_counter = atomic_read(&dev_priv->gpu_error.reset_counter);
- 	mutex_unlock(&dev->struct_mutex);
- 
--	return __i915_wait_seqno(ring, seqno, reset_counter, true,
--				 &args->timeout_ns, file->driver_priv);
-+	ret = __i915_wait_seqno(ring, seqno, reset_counter, true, timeout, file->driver_priv);
-+	if (timeout)
-+		args->timeout_ns = timespec_to_ns(timeout);
-+	return ret;
- 
- out:
- 	drm_gem_object_unreference(&obj->base);
-diff --git a/drivers/gpu/drm/i915/intel_pm.c b/drivers/gpu/drm/i915/intel_pm.c
-index 1f4b56e..807cbd6 100644
+@@ -3048,8 +3054,10 @@ i915_gem_wait_ioctl(struct drm_device *d
+ 	for (i = 0; i < n; i++) {
+ 		if (ret == 0)
+ 			ret = __i915_wait_request(req[i], reset_counter, true,
+-						  args->timeout_ns > 0 ? &args->timeout_ns : NULL,
++						  timeout,
+ 						  file->driver_priv);
++		if (timeout)
++			args->timeout_ns = timespec_to_ns(timeout);
+ 		i915_gem_request_unreference__unlocked(req[i]);
+ 	}
+ 	return ret;
 --- a/drivers/gpu/drm/i915/intel_pm.c
 +++ b/drivers/gpu/drm/i915/intel_pm.c
-@@ -4206,7 +4206,7 @@ static void ironlake_enable_drps(struct drm_device *dev)
+@@ -3866,7 +3866,7 @@ static void ironlake_enable_drps(struct
  		I915_READ(0x112e0);
  	dev_priv->ips.last_time1 = jiffies_to_msecs(jiffies);
  	dev_priv->ips.last_count2 = I915_READ(0x112f4);
@@ -131,7 +129,7 @@ index 1f4b56e..807cbd6 100644
  
  	spin_unlock_irq(&mchdev_lock);
  }
-@@ -5825,14 +5825,15 @@ static u16 pvid_to_extvid(struct drm_i915_private *dev_priv, u8 pxvid)
+@@ -5364,14 +5364,15 @@ static u32 pvid_to_extvid(struct drm_i91
  
  static void __i915_update_gfx_val(struct drm_i915_private *dev_priv)
  {
@@ -151,16 +149,3 @@ index 1f4b56e..807cbd6 100644
  
  	/* Don't divide by 0 */
  	if (!diffms)
-diff --git a/drivers/gpu/drm/i915/i915_drv.h b/drivers/gpu/drm/i915/i915_drv.h
-index 63bcda5..cee6ed3 100644
---- a/drivers/gpu/drm/i915/i915_drv.h
-+++ b/drivers/gpu/drm/i915/i915_drv.h
-@@ -2578,7 +2578,7 @@ int __i915_add_request(struct intel_engine_cs *ring,
- int __i915_wait_seqno(struct intel_engine_cs *ring, u32 seqno,
- 			unsigned reset_counter,
- 			bool interruptible,
--			s64 *timeout,
-+			struct timespec *timeout,
- 			struct drm_i915_file_private *file_priv);
- int __must_check i915_wait_seqno(struct intel_engine_cs *ring,
- 				 uint32_t seqno);

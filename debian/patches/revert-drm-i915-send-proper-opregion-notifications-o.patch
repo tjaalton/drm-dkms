@@ -12,8 +12,6 @@ Conflicts:
  drivers/gpu/drm/i915/i915_drv.c | 10 ----------
  1 file changed, 10 deletions(-)
 
-diff --git a/drivers/gpu/drm/i915/i915_drv.c b/drivers/gpu/drm/i915/i915_drv.c
-index 2c44369..715bd9f 100644
 --- a/drivers/gpu/drm/i915/i915_drv.c
 +++ b/drivers/gpu/drm/i915/i915_drv.c
 @@ -28,7 +28,6 @@
@@ -24,15 +22,15 @@ index 2c44369..715bd9f 100644
  #include <drm/drmP.h>
  #include <drm/i915_drm.h>
  #include "i915_drv.h"
-@@ -558,7 +557,6 @@ static int i915_drm_suspend(struct drm_device *dev)
+@@ -602,7 +601,6 @@ static int i915_drm_suspend(struct drm_d
  {
  	struct drm_i915_private *dev_priv = dev->dev_private;
  	struct drm_crtc *crtc;
 -	pci_power_t opregion_target_state;
+ 	int error;
  
  	/* ignore lid events during suspend */
- 	mutex_lock(&dev_priv->modeset_restore_lock);
-@@ -609,12 +607,6 @@ static int i915_drm_suspend(struct drm_device *dev)
+@@ -649,12 +647,6 @@ static int i915_drm_suspend(struct drm_d
  
  	i915_save_state(dev);
  
@@ -45,7 +43,7 @@ index 2c44369..715bd9f 100644
  	intel_uncore_forcewake_reset(dev, false);
  	intel_opregion_fini(dev);
  
-@@ -730,8 +722,6 @@ static int i915_drm_resume(struct drm_device *dev)
+@@ -782,8 +774,6 @@ static int i915_drm_resume(struct drm_de
  	dev_priv->modeset_restore = MODESET_DONE;
  	mutex_unlock(&dev_priv->modeset_restore_lock);
  
@@ -54,6 +52,3 @@ index 2c44369..715bd9f 100644
  	drm_kms_helper_poll_enable(dev);
  
  	return 0;
--- 
-2.1.3
-

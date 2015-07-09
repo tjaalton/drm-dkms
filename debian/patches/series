@@ -1,5 +1,3 @@
-revert-drm-i915-Kick-fbdev-before-vgacon.patch
-revert-drm-i915-Handle-failure-to-kick-out-a-conflic.patch
 #0001-Add-backport-checks.patch
 #0002-Add-alias-for-clflushopt.patch
 #0003-Copy-sm_mb__before_atomic-into-backport.h.patch
@@ -12,6 +10,7 @@ backport.patch
 0009-Move-simple_dname-into-drm_stub.c.patch
 0010-Revert-use-of-vgacon.patch
 0011-Import-interval_tree-for-i915_gem_userptr.c.patch
+# -> 3.19
 revert-drm-Use-ktime_mono_to_real.patch
 revert-hlst-add-beind-rcu.patch
 dma_buf_export_fix.patch
@@ -19,21 +18,14 @@ revert-module_param_named_unsafe-usage.patch
 revert-drm-i915-use-nsec-based-interfaces.patch
 i915_gem_dmabuff-backport.patch
 revert-drm-i915-handle-inaccurate-time-conversion-issues.diff
-revert-drm-atomic-helpers-document-how-to-implement-.patch
 revert-drm-atomic-Integrate-fence-support.patch
 revert-drm-i915-make-system-freeze-support-depend-on.patch
 revert-drm-i915-send-proper-opregion-notifications-o.patch
-9001-drm-i915-Fix-chv-cdclk-support.patch
-9002-drm-i915-Allow-pixel-clock-up-to-95-of-cdclk-on-CHV.patch
-9003-drm-i915-Reduce-CHV-DDL-multiplier-to-16-8.patch
-9004-drm-i915-Kill-DRAIN_LATENCY_PRECISION_-defines.patch
-9005-drm-i915-Simplify-VLV-drain-latency-computation.patch
-9006-drm-i915-Hide-VLV-DDL-precision-handling.patch
-9007-drm-i915-Reorganize-VLV-DDL-setup.patch
-9008-drm-i915-Pass-plane-to-vlv_compute_drain_latency.patch
-9009-drm-i915-Read-out-display-FIFO-size-on-VLV-CHV.patch
-9010-drm-i915-Make-sure-PND-deadline-mode-is-enabled-on-V.patch
-#9011-drm-i915-Rewrite-VLV-CHV-watermark-code.patch
-9012-drm-i915-Enable-the-maxfifo-PM5-mode-when-appropriat.patch
-#9013-drm-i915-Disable-DDR-DVFS-on-CHV.patch
-#9014-fixup.patch
+# -> 4.2
+4201-Revert-drm-add-bus_formats-and-num_bus_formats-field.patch
+4202-Revert-x86-mm-mtrr-Avoid-ifdeffery-with-phys_wc_to_m.patch
+4203-revert-dma-buf-cleanup-dma-buf-export.diff
+4204-Revert-mm-fault-drm-i915-Use-pagefault_disabled-to-c.patch
+4205-Revert-drm-i915-remove-unused-power_well-get_cdclk_f.patch
+4206-Revert-drm-i915-add-component-support.patch
+4207-Revert-drm-i915-Port-to-new-backlight-interface-sele.patch
