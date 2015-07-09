@@ -127,7 +127,7 @@ drm-usb-y                        := $(patsubst %,$(DRMD)%.o,drm_usb)
 drm-$(CONFIG_COMPAT)             += $(patsubst %,$(DRMD)%.o,drm_ioc32)
 drm-$(CONFIG_DRM_GEM_CMA_HELPER) += $(patsubst %,$(DRMD)%.o,drm_gem_cma_helper)
 drm-$(CONFIG_PCI)                += $(patsubst %,$(DRMD)%.o,ati_pcigart)
-drm-$(CONFIG_DRM_PANEL)          += $(patsubst %,$(DRMD)%.o,drm_panel)
+drm-y                            += $(patsubst %,$(DRMD)%.o,drm_panel)
 
 obj-$(CONFIG_DRM_I915)           += i915.o
 obj-$(CONFIG_INTEL_IPS)          += intel_ips.o
