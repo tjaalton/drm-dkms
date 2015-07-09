@@ -1,4 +1,29 @@
-i915-4.2-3.13 (4.2~rc1-4) trusty; urgency=medium
+i915-3.19-3.13 (3.19.1-6.1) trusty; urgency=medium
+
+  * 9104-drm-i915-fix-the-vbt-child-device-parsing-for-bsw.diff
+    - Fix booting on 3c15 platform
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Wed, 03 Jun 2015 05:59:21 +0300
+
+i915-3.19-3.13 (3.19.1-6) trusty; urgency=medium
+
+  * dkms.conf.in: add BUILD_EXCLUSIVE_KERNEL.
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Fri, 22 May 2015 09:01:17 +0300
+
+i915-3.19-3.13 (3.19.1-5.2) trusty; urgency=medium
+
+  * add three patches to fix booting with new bios (LP: #1421129)
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Fri, 15 May 2015 09:45:03 +0300
+
+i915-3.19-3.13 (3.19.1-5) trusty; urgency=medium
+
+  * Add chv suspend fix patch.
+
+ -- Robert Hooker <sarvatt@ubuntu.com>  Wed, 01 Apr 2015 08:40:00 -0400
+
+i915-3.19-3.13 (3.19.1-4) trusty; urgency=medium
 
   * Drop debhelper dependency for the dkms package.
 
