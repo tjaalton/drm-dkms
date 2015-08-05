@@ -1,3 +1,9 @@
+i915-4.2-3.13 (4.2~rc5-1) UNRELEASED; urgency=medium
+
+  * Rebase to v4.2-rc5 + topic/mst-fixes-2015-08-04
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Wed, 05 Aug 2015 15:50:29 +0300
+
 i915-4.2-3.13 (4.2~rc1-2) trusty; urgency=medium
 
   * control: Add Breaks/Replaces i915-3.19-3.13-dkms.
