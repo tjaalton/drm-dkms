@@ -25,3 +25,4 @@ backport.patch
 4205-Revert-drm-i915-remove-unused-power_well-get_cdclk_f.patch
 4206-Revert-drm-i915-add-component-support.patch
 4207-Revert-drm-i915-Port-to-new-backlight-interface-sele.patch
+drm-i915-Allow-parsing-of-variable-size-child-device.patch

@@ -1,6 +1,8 @@
 i915-4.2-3.13 (4.2~rc7-1) UNRELEASED; urgency=medium
 
   * Rebase to v4.2-rc7.
+  * drm-i915-Allow-parsing-of-variable-size-child-device.patch: Fix
+    bootup on some models.
 
  -- Timo Aaltonen <tjaalton@debian.org>  Wed, 05 Aug 2015 15:50:29 +0300
 
