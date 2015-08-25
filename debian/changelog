@@ -1,9 +1,9 @@
-i915-4.2-3.13 (4.2~rc8-1) UNRELEASED; urgency=medium
+i915-4.2-3.13 (4.2~rc8-1) trusty; urgency=medium
 
   * Rebase to v4.2-rc8.
   * Drop drm-i915-Allow-parsing-of-variable-size-child-device.patch.
 
- -- Timo Aaltonen <tjaalton@debian.org>  Tue, 25 Aug 2015 09:47:44 +0300
+ -- Timo Aaltonen <tjaalton@debian.org>  Tue, 25 Aug 2015 10:46:45 +0300
 
 i915-4.2-3.13 (4.2~rc7-1) trusty; urgency=medium
 
