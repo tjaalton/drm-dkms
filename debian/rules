@@ -5,12 +5,13 @@
 
 include /usr/share/quilt/quilt.make
 
+source = $(shell dpkg-parsechangelog | grep "^Source:" | sed 's/Source: //')
 # some default definitions, important!
 #
 # Name of the source package
-psource:=i915-4.2-3.13-source
-pdkms:=i915-4.2-3.13-dkms
-sname:=i915-4.2-3.13
+psource := $(source)-source
+pdkms   := $(source)-dkms
+sname   := $(source)
 sversion:=$(shell dpkg-parsechangelog|grep "^Version:"|cut -d" " -f2|rev|cut -d- -f2-|rev|cut -d':' -f2)
 
 ### KERNEL SETUP
@@ -18,7 +19,7 @@ sversion:=$(shell dpkg-parsechangelog|grep "^Version:"|cut -d" " -f2|rev|cut -d-
 ### taken from /usr/share/kernel-package/sample.module.rules
 
 # prefix of the target package name
-PACKAGE=i915-4.2-3.13-dkms
+PACKAGE = $pdkms
 # modifieable for experiments or debugging m-a
 MA_DIR ?= /usr/share/modass
 # load generic variable handling
