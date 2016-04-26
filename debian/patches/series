@@ -9,14 +9,6 @@ backport.patch
 0009-Move-simple_dname-into-drm_stub.c.patch
 0010-Revert-use-of-vgacon.patch
 0011-Import-interval_tree-for-i915_gem_userptr.c.patch
-# -> 3.19
-31901-revert-drm-Use-ktime_mono_to_real.patch
-31902-revert-hlst-add-beind-rcu.patch
-31903-revert-drm-i915-use-nsec-based-interfaces.patch
-31904-revert-drm-i915-handle-inaccurate-time-conversion-issues.diff
-31905-revert-drm-atomic-Integrate-fence-support.patch
-31906-revert-drm-i915-make-system-freeze-support-depend-on.patch
-31907-revert-drm-i915-send-proper-opregion-notifications-o.patch
 # -> 4.2
 4201-Revert-drm-add-bus_formats-and-num_bus_formats-field.patch
 4202-Revert-x86-mm-mtrr-Avoid-ifdeffery-with-phys_wc_to_m.patch
