@@ -14,6 +14,4 @@ backport.patch
 4202-Revert-x86-mm-mtrr-Avoid-ifdeffery-with-phys_wc_to_m.patch
 4203-revert-dma-buf-cleanup-dma-buf-export.diff
 4204-Revert-mm-fault-drm-i915-Use-pagefault_disabled-to-c.patch
-4205-Revert-drm-i915-remove-unused-power_well-get_cdclk_f.patch
-4206-Revert-drm-i915-add-component-support.patch
 4207-Revert-drm-i915-Port-to-new-backlight-interface-sele.patch
