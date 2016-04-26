@@ -8,122 +8,43 @@
  #if defined(CONFIG_X86)
  #include <asm/smp.h>
  
---- a/drivers/gpu/drm/drm_irq.c
-+++ b/drivers/gpu/drm/drm_irq.c
-@@ -42,6 +42,7 @@
- #include <linux/vgaarb.h>
- #include <linux/export.h>
- 
+--- a/drivers/gpu/drm/drm_gem.c
++++ b/drivers/gpu/drm/drm_gem.c
+@@ -40,6 +40,7 @@
+ #include <drm/drm_vma_manager.h>
+ #include <drm/drm_gem.h>
+ #include "drm_internal.h"
 +#include <backport.h>
- /* Access macro for slots in vblank timestamp ringbuffer. */
- #define vblanktimestamp(dev, crtc, count) \
- 	((dev)->vblank[crtc].time[(count) % DRM_VBLANKTIME_RBSIZE])
---- a/drivers/gpu/drm/i915/intel_acpi.c
-+++ b/drivers/gpu/drm/i915/intel_acpi.c
-@@ -9,6 +9,8 @@
- #include <drm/drmP.h>
- #include "i915_drv.h"
  
-+#include "backport_acpi_bus.h"
-+
- #define INTEL_DSM_REVISION_ID 1 /* For Calpella anyway... */
- #define INTEL_DSM_FN_PLATFORM_MUX_INFO 1 /* No args */
- 
---- a/drivers/gpu/drm/i915/intel_opregion.c
-+++ b/drivers/gpu/drm/i915/intel_opregion.c
-@@ -35,6 +35,8 @@
- #include "i915_drv.h"
- #include "intel_drv.h"
- 
-+#include "backport.h"
-+
- #define PCI_ASLE		0xe4
- #define PCI_ASLS		0xfc
- #define PCI_SWSCI		0xe8
---- a/drivers/gpu/drm/i915/i915_irq.c
-+++ b/drivers/gpu/drm/i915/i915_irq.c
-@@ -37,6 +37,8 @@
- #include "i915_trace.h"
- #include "intel_drv.h"
- 
-+#include "backport.h"
-+
- /**
-  * DOC: interrupt handling
+ /** @file drm_gem.c
   *
 --- a/drivers/gpu/drm/i915/i915_gem.c
 +++ b/drivers/gpu/drm/i915/i915_gem.c
-@@ -38,6 +38,8 @@
+@@ -37,6 +37,7 @@
+ #include <linux/swap.h>
  #include <linux/pci.h>
  #include <linux/dma-buf.h>
- 
 +#include <backport.h>
-+
+ 
  #define RQ_BUG_ON(expr)
  
- static void i915_gem_object_flush_gtt_write_domain(struct drm_i915_gem_object *obj);
---- a/drivers/gpu/drm/i915/intel_display.c
-+++ b/drivers/gpu/drm/i915/intel_display.c
-@@ -45,6 +45,8 @@
- #include <drm/drm_rect.h>
- #include <linux/dma_remapping.h>
- 
-+#include <backport.h>
-+
- /* Primary plane formats for gen <= 3 */
- static const uint32_t i8xx_primary_formats[] = {
- 	DRM_FORMAT_C8,
---- a/drivers/gpu/drm/i915/intel_panel.c
-+++ b/drivers/gpu/drm/i915/intel_panel.c
-@@ -34,6 +34,8 @@
- #include <linux/moduleparam.h>
+--- a/drivers/gpu/drm/i915/intel_dp.c
++++ b/drivers/gpu/drm/i915/intel_dp.c
+@@ -38,6 +38,7 @@
  #include "intel_drv.h"
- 
-+#include <backport.h>
-+
- void
- intel_fixed_panel_mode(const struct drm_display_mode *fixed_mode,
- 		       struct drm_display_mode *adjusted_mode)
---- a/drivers/gpu/drm/drm_dp_helper.c
-+++ b/drivers/gpu/drm/drm_dp_helper.c
-@@ -30,6 +30,8 @@
- #include <drm/drm_dp_helper.h>
- #include <drm/drmP.h>
- 
-+#include <backport.h>
-+
- /**
-  * DOC: dp helpers
-  *
---- a/drivers/gpu/drm/i915/i915_params.c
-+++ b/drivers/gpu/drm/i915/i915_params.c
-@@ -24,6 +24,8 @@
- 
+ #include <drm/i915_drm.h>
  #include "i915_drv.h"
- 
 +#include <backport.h>
-+
- struct i915_params i915 __read_mostly = {
- 	.modeset = -1,
- 	.panel_ignore_lid = 1,
---- a/drivers/gpu/drm/drm_prime.c
-+++ b/drivers/gpu/drm/drm_prime.c
+ 
+ #define DP_LINK_CHECK_TIMEOUT	(10 * 1000)
+ 
+--- a/drivers/gpu/drm/i915/intel_opregion.c
++++ b/drivers/gpu/drm/i915/intel_opregion.c
 @@ -33,6 +33,7 @@
- 
- #include "drm_internal.h"
- 
-+#include "backport.h"
- /*
-  * DMA-BUF/GEM Object references and lifetime overview:
-  *
---- a/drivers/gpu/drm/i915/i915_gem_dmabuf.c
-+++ b/drivers/gpu/drm/i915/i915_gem_dmabuf.c
-@@ -27,6 +27,8 @@
+ #include <drm/i915_drm.h>
  #include "i915_drv.h"
- #include <linux/dma-buf.h>
- 
+ #include "intel_drv.h"
 +#include <backport.h>
-+
- static struct drm_i915_gem_object *dma_buf_to_obj(struct dma_buf *buf)
- {
- 	return to_intel_bo(buf->priv);
+ 
+ #define PCI_ASLE		0xe4
+ #define PCI_ASLS		0xfc
