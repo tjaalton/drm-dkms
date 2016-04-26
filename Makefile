@@ -5,7 +5,7 @@ KBUILD      := $(KBASE)/build
 MOD_DIR     := $(KBASE)/kernel
 PWD         := $(shell pwd)
 
-I9_MODULES  := i915_bpo.o drm.o drm_kms_helper.o intel_ips.o drm_mipi_dsi.o
+I9_MODULES  := i915_bpo.o drm.o drm_kms_helper.o intel_ips.o
 
 CPATH       := $(KBUILD_EXTMOD)/drivers/gpu/drm/i915
 
@@ -140,7 +140,6 @@ drm_kms_helper-y)                               += \
 drm-y       := $(patsubst %,$(DRMD)%.o,      $(DRM_ITEMS))
 i915_bpo-y      := $(patsubst %,$(DRMD)i915/%.o, $(I915_ITEMS))
 intel_ips-y := $(patsubst %,drivers/platform/x86/%.o,intel_ips)
-drm_mipi_dsi-y := $(patsubst %,drivers/gpu/drm/%.o,drm_mipi_dsi)
 
 i915_bpo-$(CONFIG_COMPAT)            += $(patsubst %,$(DRMD)i915/%.o,i915_ioc32)
 i915_bpo-$(CONFIG_DEBUG_FS)          += $(patsubst %,$(DRMD)i915/%.o,i915_debugfs)
@@ -158,7 +157,6 @@ obj-$(CONFIG_DRM_I915)           += i915_bpo.o
 obj-$(CONFIG_INTEL_IPS)          += intel_ips.o
 obj-$(CONFIG_DRM)                += drm.o
 obj-$(CONFIG_DRM_KMS_HELPER)     += drm_kms_helper.o
-obj-$(CONFIG_DRM_MIPI_DSI)       += drm_mipi_dsi.o
 
 obj-m := $(I9_MODULES)
 
