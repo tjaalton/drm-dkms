@@ -5,3 +5,5 @@ backport.patch
 4203-revert-dma-buf-cleanup-dma-buf-export.diff
 4204-Revert-mm-fault-drm-i915-Use-pagefault_disabled-to-c.patch
 4207-Revert-drm-i915-Port-to-new-backlight-interface-sele.patch
+# -> 4.6
+rename-to-i915-bpo.diff
