@@ -1,0 +1,15 @@
+--- a/drivers/gpu/drm/i915/i915_gem_execbuffer.c
++++ b/drivers/gpu/drm/i915/i915_gem_execbuffer.c
+@@ -40,6 +40,12 @@
+ 
+ #define BATCH_OFFSET_BIAS (256*1024)
+ 
++static inline __s64 sign_extend64(__u64 value, int index)
++{
++	__u8 shift = 63 - index;
++	return (__s64)(value << shift) >> shift;
++}
++
+ struct eb_vmas {
+ 	struct list_head vmas;
+ 	int and;

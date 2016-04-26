@@ -1,0 +1,915 @@
+5fc32908c49b348 Revert "i915: switch from acpi_os_ioremap to memremap"
+b7f17fcff93a956 Revert "drm/i915: move "no VBT in opregion" quirk to intel_opregion_setup()"
+1d8dd0fcdd81327 Revert "drm/i915/bios: have functions return vbt, not bdb, header pointer"
+7603b0c99ef4077 Revert "drm/i915/bios: move debug logging about VBT source to intel_parse_bios()"
+9e863cdca757eb4 Revert "drm/i915/bios: rename intel_parse_bios to intel_bios_init"
+71b53f41d04654e Revert "drm/i915: refactor VBT validation"
+a9a70fcca2ca553 Revert "drm/i915/opregion: make VBT size limit more strict"
+8c3d7f02684cc02 Revert "drm/i915/opregion: make VBT pointer a const"
+f3235e3244b7d35 Revert "drm/i915: don't use a temp buffer for opregion debugfs file"
+5f93b2d410da94c Revert "drm/i915/debugfs: add a separate debugfs file for VBT"
+0227f26b2caad71 Revert "drm/i915: prefer for_each_intel_* macros for iteration"
+fe82208bab7ee27 Revert "drm/i915/bios: fix format string of the VBT signature logging"
+931ccedce21c311 Revert "drm/i915/bios: prefer using dev_priv over dev pointer"
+081c59a96db6205 Revert "drm/i915/bios: reduce indent in parse_general_features"
+
+
+diff --git a/drivers/gpu/drm/i915/i915_debugfs.c b/drivers/gpu/drm/i915/i915_debugfs.c
+index a0f1bd7..81f4489 100644
+--- a/drivers/gpu/drm/i915/i915_debugfs.c
++++ b/drivers/gpu/drm/i915/i915_debugfs.c
+@@ -1863,31 +1863,25 @@ static int i915_opregion(struct seq_file *m, void *unused)
+ 	struct drm_device *dev = node->minor->dev;
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+ 	struct intel_opregion *opregion = &dev_priv->opregion;
++	void *data = kmalloc(OPREGION_SIZE, GFP_KERNEL);
+ 	int ret;
+ 
++	if (data == NULL)
++		return -ENOMEM;
++
+ 	ret = mutex_lock_interruptible(&dev->struct_mutex);
+ 	if (ret)
+ 		goto out;
+ 
+-	if (opregion->header)
+-		seq_write(m, opregion->header, OPREGION_SIZE);
++	if (opregion->header) {
++		memcpy_fromio(data, opregion->header, OPREGION_SIZE);
++		seq_write(m, data, OPREGION_SIZE);
++	}
+ 
+ 	mutex_unlock(&dev->struct_mutex);
+ 
+ out:
+-	return 0;
+-}
+-
+-static int i915_vbt(struct seq_file *m, void *unused)
+-{
+-	struct drm_info_node *node = m->private;
+-	struct drm_device *dev = node->minor->dev;
+-	struct drm_i915_private *dev_priv = dev->dev_private;
+-	struct intel_opregion *opregion = &dev_priv->opregion;
+-
+-	if (opregion->vbt)
+-		seq_write(m, opregion->vbt, opregion->vbt_size);
+-
++	kfree(data);
+ 	return 0;
+ }
+ 
+@@ -5369,7 +5363,6 @@ static const struct drm_info_list i915_debugfs_list[] = {
+ 	{"i915_ips_status", i915_ips_status, 0},
+ 	{"i915_sr_status", i915_sr_status, 0},
+ 	{"i915_opregion", i915_opregion, 0},
+-	{"i915_vbt", i915_vbt, 0},
+ 	{"i915_gem_framebuffer", i915_gem_framebuffer_info, 0},
+ 	{"i915_context_status", i915_context_status, 0},
+ 	{"i915_dump_lrc", i915_dump_lrc, 0},
+diff --git a/drivers/gpu/drm/i915/i915_dma.c b/drivers/gpu/drm/i915/i915_dma.c
+index 1c6d227..e546405 100644
+--- a/drivers/gpu/drm/i915/i915_dma.c
++++ b/drivers/gpu/drm/i915/i915_dma.c
+@@ -370,7 +370,7 @@ static int i915_load_modeset_init(struct drm_device *dev)
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+ 	int ret;
+ 
+-	ret = intel_bios_init(dev_priv);
++	ret = intel_parse_bios(dev);
+ 	if (ret)
+ 		DRM_INFO("failed to find VBIOS tables\n");
+ 
+diff --git a/drivers/gpu/drm/i915/i915_drv.c b/drivers/gpu/drm/i915/i915_drv.c
+index fc9b552..a88e143 100644
+--- a/drivers/gpu/drm/i915/i915_drv.c
++++ b/drivers/gpu/drm/i915/i915_drv.c
+@@ -545,12 +545,15 @@ bool i915_semaphore_is_enabled(struct drm_device *dev)
+ static void intel_suspend_encoders(struct drm_i915_private *dev_priv)
+ {
+ 	struct drm_device *dev = dev_priv->dev;
+-	struct intel_encoder *encoder;
++	struct drm_encoder *encoder;
+ 
+ 	drm_modeset_lock_all(dev);
+-	for_each_intel_encoder(dev, encoder)
+-		if (encoder->suspend)
+-			encoder->suspend(encoder);
++	list_for_each_entry(encoder, &dev->mode_config.encoder_list, head) {
++		struct intel_encoder *intel_encoder = to_intel_encoder(encoder);
++
++		if (intel_encoder->suspend)
++			intel_encoder->suspend(intel_encoder);
++	}
+ 	drm_modeset_unlock_all(dev);
+ }
+ 
+diff --git a/drivers/gpu/drm/i915/i915_drv.h b/drivers/gpu/drm/i915/i915_drv.h
+index 07c3673..f339f57 100644
+--- a/drivers/gpu/drm/i915/i915_drv.h
++++ b/drivers/gpu/drm/i915/i915_drv.h
+@@ -450,15 +450,14 @@ struct opregion_swsci;
+ struct opregion_asle;
+ 
+ struct intel_opregion {
+-	struct opregion_header *header;
+-	struct opregion_acpi *acpi;
+-	struct opregion_swsci *swsci;
++	struct opregion_header __iomem *header;
++	struct opregion_acpi __iomem *acpi;
++	struct opregion_swsci __iomem *swsci;
+ 	u32 swsci_gbda_sub_functions;
+ 	u32 swsci_sbcb_sub_functions;
+-	struct opregion_asle *asle;
+-	const void *vbt;
+-	u32 vbt_size;
+-	u32 *lid_state;
++	struct opregion_asle __iomem *asle;
++	void __iomem *vbt;
++	u32 __iomem *lid_state;
+ 	struct work_struct asle_work;
+ };
+ #define OPREGION_SIZE            (8*1024)
+@@ -3387,10 +3386,6 @@ static inline bool intel_gmbus_is_forced_bit(struct i2c_adapter *adapter)
+ }
+ extern void intel_i2c_reset(struct drm_device *dev);
+ 
+-/* intel_bios.c */
+-int intel_bios_init(struct drm_i915_private *dev_priv);
+-bool intel_bios_is_valid_vbt(const void *buf, size_t size);
+-
+ /* intel_opregion.c */
+ #ifdef CONFIG_ACPI
+ extern int intel_opregion_setup(struct drm_device *dev);
+diff --git a/drivers/gpu/drm/i915/intel_bios.c b/drivers/gpu/drm/i915/intel_bios.c
+index bf62a19..4837f80 100644
+--- a/drivers/gpu/drm/i915/intel_bios.c
++++ b/drivers/gpu/drm/i915/intel_bios.c
+@@ -24,7 +24,7 @@
+  *    Eric Anholt <eric@anholt.net>
+  *
+  */
+-
++#include <linux/dmi.h>
+ #include <drm/drm_dp_helper.h>
+ #include <drm/drmP.h>
+ #include <drm/i915_drm.h>
+@@ -354,10 +354,10 @@ parse_sdvo_panel_data(struct drm_i915_private *dev_priv,
+ 	drm_mode_debug_printmodeline(panel_fixed_mode);
+ }
+ 
+-static int intel_bios_ssc_frequency(struct drm_i915_private *dev_priv,
++static int intel_bios_ssc_frequency(struct drm_device *dev,
+ 				    bool alternate)
+ {
+-	switch (INTEL_INFO(dev_priv)->gen) {
++	switch (INTEL_INFO(dev)->gen) {
+ 	case 2:
+ 		return alternate ? 66667 : 48000;
+ 	case 3:
+@@ -372,29 +372,29 @@ static void
+ parse_general_features(struct drm_i915_private *dev_priv,
+ 		       const struct bdb_header *bdb)
+ {
++	struct drm_device *dev = dev_priv->dev;
+ 	const struct bdb_general_features *general;
+ 
+ 	general = find_section(bdb, BDB_GENERAL_FEATURES);
+-	if (!general)
+-		return;
+-
+-	dev_priv->vbt.int_tv_support = general->int_tv_support;
+-	/* int_crt_support can't be trusted on earlier platforms */
+-	if (bdb->version >= 155 &&
+-	    (HAS_DDI(dev_priv) || IS_VALLEYVIEW(dev_priv)))
+-		dev_priv->vbt.int_crt_support = general->int_crt_support;
+-	dev_priv->vbt.lvds_use_ssc = general->enable_ssc;
+-	dev_priv->vbt.lvds_ssc_freq =
+-		intel_bios_ssc_frequency(dev_priv, general->ssc_freq);
+-	dev_priv->vbt.display_clock_mode = general->display_clock_mode;
+-	dev_priv->vbt.fdi_rx_polarity_inverted = general->fdi_rx_polarity_inverted;
+-	DRM_DEBUG_KMS("BDB_GENERAL_FEATURES int_tv_support %d int_crt_support %d lvds_use_ssc %d lvds_ssc_freq %d display_clock_mode %d fdi_rx_polarity_inverted %d\n",
+-		      dev_priv->vbt.int_tv_support,
+-		      dev_priv->vbt.int_crt_support,
+-		      dev_priv->vbt.lvds_use_ssc,
+-		      dev_priv->vbt.lvds_ssc_freq,
+-		      dev_priv->vbt.display_clock_mode,
+-		      dev_priv->vbt.fdi_rx_polarity_inverted);
++	if (general) {
++		dev_priv->vbt.int_tv_support = general->int_tv_support;
++		/* int_crt_support can't be trusted on earlier platforms */
++		if (bdb->version >= 155 &&
++		    (HAS_DDI(dev_priv) || IS_VALLEYVIEW(dev_priv)))
++			dev_priv->vbt.int_crt_support = general->int_crt_support;
++		dev_priv->vbt.lvds_use_ssc = general->enable_ssc;
++		dev_priv->vbt.lvds_ssc_freq =
++			intel_bios_ssc_frequency(dev, general->ssc_freq);
++		dev_priv->vbt.display_clock_mode = general->display_clock_mode;
++		dev_priv->vbt.fdi_rx_polarity_inverted = general->fdi_rx_polarity_inverted;
++		DRM_DEBUG_KMS("BDB_GENERAL_FEATURES int_tv_support %d int_crt_support %d lvds_use_ssc %d lvds_ssc_freq %d display_clock_mode %d fdi_rx_polarity_inverted %d\n",
++			      dev_priv->vbt.int_tv_support,
++			      dev_priv->vbt.int_crt_support,
++			      dev_priv->vbt.lvds_use_ssc,
++			      dev_priv->vbt.lvds_ssc_freq,
++			      dev_priv->vbt.display_clock_mode,
++			      dev_priv->vbt.fdi_rx_polarity_inverted);
++	}
+ }
+ 
+ static void
+@@ -1137,9 +1137,10 @@ static void parse_ddi_port(struct drm_i915_private *dev_priv, enum port port,
+ static void parse_ddi_ports(struct drm_i915_private *dev_priv,
+ 			    const struct bdb_header *bdb)
+ {
++	struct drm_device *dev = dev_priv->dev;
+ 	enum port port;
+ 
+-	if (!HAS_DDI(dev_priv))
++	if (!HAS_DDI(dev))
+ 		return;
+ 
+ 	if (!dev_priv->vbt.child_dev_num)
+@@ -1257,6 +1258,7 @@ parse_device_mapping(struct drm_i915_private *dev_priv,
+ static void
+ init_vbt_defaults(struct drm_i915_private *dev_priv)
+ {
++	struct drm_device *dev = dev_priv->dev;
+ 	enum port port;
+ 
+ 	dev_priv->vbt.crt_ddc_pin = GMBUS_PIN_VGADDC;
+@@ -1281,8 +1283,8 @@ init_vbt_defaults(struct drm_i915_private *dev_priv)
+ 	 * Core/SandyBridge/IvyBridge use alternative (120MHz) reference
+ 	 * clock for LVDS.
+ 	 */
+-	dev_priv->vbt.lvds_ssc_freq = intel_bios_ssc_frequency(dev_priv,
+-			!HAS_PCH_SPLIT(dev_priv));
++	dev_priv->vbt.lvds_ssc_freq = intel_bios_ssc_frequency(dev,
++			!HAS_PCH_SPLIT(dev));
+ 	DRM_DEBUG_KMS("Set default to SSC at %d kHz\n", dev_priv->vbt.lvds_ssc_freq);
+ 
+ 	for (port = PORT_A; port < I915_MAX_PORTS; port++) {
+@@ -1297,79 +1299,87 @@ init_vbt_defaults(struct drm_i915_private *dev_priv)
+ 	}
+ }
+ 
+-static const struct bdb_header *get_bdb_header(const struct vbt_header *vbt)
++static int intel_no_opregion_vbt_callback(const struct dmi_system_id *id)
+ {
+-	const void *_vbt = vbt;
+-
+-	return _vbt + vbt->bdb_offset;
++	DRM_DEBUG_KMS("Falling back to manually reading VBT from "
++		      "VBIOS ROM for %s\n",
++		      id->ident);
++	return 1;
+ }
+ 
+-/**
+- * intel_bios_is_valid_vbt - does the given buffer contain a valid VBT
+- * @buf:	pointer to a buffer to validate
+- * @size:	size of the buffer
+- *
+- * Returns true on valid VBT.
+- */
+-bool intel_bios_is_valid_vbt(const void *buf, size_t size)
++static const struct dmi_system_id intel_no_opregion_vbt[] = {
++	{
++		.callback = intel_no_opregion_vbt_callback,
++		.ident = "ThinkCentre A57",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "97027RG"),
++		},
++	},
++	{ }
++};
++
++static const struct bdb_header *validate_vbt(const void __iomem *_base,
++					     size_t size,
++					     const void __iomem *_vbt,
++					     const char *source)
+ {
+-	const struct vbt_header *vbt = buf;
++	/*
++	 * This is the one place where we explicitly discard the address space
++	 * (__iomem) of the BIOS/VBT. (And this will cause a sparse complaint.)
++	 * From now on everything is based on 'base', and treated as regular
++	 * memory.
++	 */
++	const void *base = (const void *) _base;
++	size_t offset = _vbt - _base;
++	const struct vbt_header *vbt = base + offset;
+ 	const struct bdb_header *bdb;
+ 
+-	if (!vbt)
+-		return false;
+-
+-	if (sizeof(struct vbt_header) > size) {
++	if (offset + sizeof(struct vbt_header) > size) {
+ 		DRM_DEBUG_DRIVER("VBT header incomplete\n");
+-		return false;
++		return NULL;
+ 	}
+ 
+ 	if (memcmp(vbt->signature, "$VBT", 4)) {
+ 		DRM_DEBUG_DRIVER("VBT invalid signature\n");
+-		return false;
++		return NULL;
+ 	}
+ 
+-	if (vbt->bdb_offset + sizeof(struct bdb_header) > size) {
++	offset += vbt->bdb_offset;
++	if (offset + sizeof(struct bdb_header) > size) {
+ 		DRM_DEBUG_DRIVER("BDB header incomplete\n");
+-		return false;
++		return NULL;
+ 	}
+ 
+-	bdb = get_bdb_header(vbt);
+-	if (vbt->bdb_offset + bdb->bdb_size > size) {
++	bdb = base + offset;
++	if (offset + bdb->bdb_size > size) {
+ 		DRM_DEBUG_DRIVER("BDB incomplete\n");
+-		return false;
++		return NULL;
+ 	}
+ 
+-	return vbt;
++	DRM_DEBUG_KMS("Using VBT from %s: %20s\n",
++		      source, vbt->signature);
++	return bdb;
+ }
+ 
+-static const struct vbt_header *find_vbt(void __iomem *bios, size_t size)
++static const struct bdb_header *find_vbt(void __iomem *bios, size_t size)
+ {
++	const struct bdb_header *bdb = NULL;
+ 	size_t i;
+ 
+ 	/* Scour memory looking for the VBT signature. */
+ 	for (i = 0; i + 4 < size; i++) {
+-		void *vbt;
+-
+-		if (ioread32(bios + i) != *((const u32 *) "$VBT"))
+-			continue;
+-
+-		/*
+-		 * This is the one place where we explicitly discard the address
+-		 * space (__iomem) of the BIOS/VBT.
+-		 */
+-		vbt = (void __force *) bios + i;
+-		if (intel_bios_is_valid_vbt(vbt, size - i))
+-			return vbt;
+-
+-		break;
++		if (ioread32(bios + i) == *((const u32 *) "$VBT")) {
++			bdb = validate_vbt(bios, size, bios + i, "PCI ROM");
++			break;
++		}
+ 	}
+ 
+-	return NULL;
++	return bdb;
+ }
+ 
+ /**
+- * intel_bios_init - find VBT and initialize settings from the BIOS
++ * intel_parse_bios - find VBT and initialize settings from the BIOS
+  * @dev_priv: i915 device instance
+  *
+  * Loads the Video BIOS and checks that the VBT exists.  Sets scratch registers
+@@ -1378,39 +1388,37 @@ static const struct vbt_header *find_vbt(void __iomem *bios, size_t size)
+  * Returns 0 on success, nonzero on failure.
+  */
+ int
+-intel_bios_init(struct drm_i915_private *dev_priv)
++intel_parse_bios(struct drm_device *dev)
+ {
+-	struct pci_dev *pdev = dev_priv->dev->pdev;
+-	const struct vbt_header *vbt = dev_priv->opregion.vbt;
+-	const struct bdb_header *bdb;
++	struct drm_i915_private *dev_priv = dev->dev_private;
++	struct pci_dev *pdev = dev->pdev;
++	const struct bdb_header *bdb = NULL;
+ 	u8 __iomem *bios = NULL;
+ 
+-	if (HAS_PCH_NOP(dev_priv))
++	if (HAS_PCH_NOP(dev))
+ 		return -ENODEV;
+ 
+ 	init_vbt_defaults(dev_priv);
+ 
+-	if (!vbt) {
++	/* XXX Should this validation be moved to intel_opregion.c? */
++	if (!dmi_check_system(intel_no_opregion_vbt) && dev_priv->opregion.vbt)
++		bdb = validate_vbt(dev_priv->opregion.header, OPREGION_SIZE,
++				   dev_priv->opregion.vbt, "OpRegion");
++
++	if (bdb == NULL) {
+ 		size_t size;
+ 
+ 		bios = pci_map_rom(pdev, &size);
+ 		if (!bios)
+ 			return -1;
+ 
+-		vbt = find_vbt(bios, size);
+-		if (!vbt) {
++		bdb = find_vbt(bios, size);
++		if (!bdb) {
+ 			pci_unmap_rom(pdev, bios);
+ 			return -1;
+ 		}
+-
+-		DRM_DEBUG_KMS("Found valid VBT in PCI ROM\n");
+ 	}
+ 
+-	bdb = get_bdb_header(vbt);
+-
+-	DRM_DEBUG_KMS("VBT signature \"%.*s\", BDB version %d\n",
+-		      (int)sizeof(vbt->signature), vbt->signature, bdb->version);
+-
+ 	/* Grab useful general definitions */
+ 	parse_general_features(dev_priv, bdb);
+ 	parse_general_definitions(dev_priv, bdb);
+diff --git a/drivers/gpu/drm/i915/intel_bios.h b/drivers/gpu/drm/i915/intel_bios.h
+index 350d4e0..9febe11 100644
+--- a/drivers/gpu/drm/i915/intel_bios.h
++++ b/drivers/gpu/drm/i915/intel_bios.h
+@@ -604,6 +604,8 @@ struct bdb_psr {
+ 	struct psr_table psr_table[16];
+ } __packed;
+ 
++int intel_parse_bios(struct drm_device *dev);
++
+ /*
+  * Driver<->VBIOS interaction occurs through scratch bits in
+  * GR18 & SWF*.
+diff --git a/drivers/gpu/drm/i915/intel_display.c b/drivers/gpu/drm/i915/intel_display.c
+index 6e0d828..b449fa5 100644
+--- a/drivers/gpu/drm/i915/intel_display.c
++++ b/drivers/gpu/drm/i915/intel_display.c
+@@ -16049,7 +16049,7 @@ void intel_connector_unregister(struct intel_connector *intel_connector)
+ void intel_modeset_cleanup(struct drm_device *dev)
+ {
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+-	struct intel_connector *connector;
++	struct drm_connector *connector;
+ 
+ 	intel_disable_gt_powersave(dev);
+ 
+@@ -16076,8 +16076,12 @@ void intel_modeset_cleanup(struct drm_device *dev)
+ 	flush_scheduled_work();
+ 
+ 	/* destroy the backlight and sysfs files before encoders/connectors */
+-	for_each_intel_connector(dev, connector)
+-		connector->unregister(connector);
++	list_for_each_entry(connector, &dev->mode_config.connector_list, head) {
++		struct intel_connector *intel_connector;
++
++		intel_connector = to_intel_connector(connector);
++		intel_connector->unregister(intel_connector);
++	}
+ 
+ 	drm_mode_config_cleanup(dev);
+ 
+diff --git a/drivers/gpu/drm/i915/intel_dp.c b/drivers/gpu/drm/i915/intel_dp.c
+index f069a82..5e52089 100644
+--- a/drivers/gpu/drm/i915/intel_dp.c
++++ b/drivers/gpu/drm/i915/intel_dp.c
+@@ -389,7 +389,8 @@ vlv_power_sequencer_pipe(struct intel_dp *intel_dp)
+ 	 * We don't have power sequencer currently.
+ 	 * Pick one that's not used by other ports.
+ 	 */
+-	for_each_intel_encoder(dev, encoder) {
++	list_for_each_entry(encoder, &dev->mode_config.encoder_list,
++			    base.head) {
+ 		struct intel_dp *tmp;
+ 
+ 		if (encoder->type != INTEL_OUTPUT_EDP)
+@@ -529,7 +530,7 @@ void vlv_power_sequencer_reset(struct drm_i915_private *dev_priv)
+ 	 * should use them always.
+ 	 */
+ 
+-	for_each_intel_encoder(dev, encoder) {
++	list_for_each_entry(encoder, &dev->mode_config.encoder_list, base.head) {
+ 		struct intel_dp *intel_dp;
+ 
+ 		if (encoder->type != INTEL_OUTPUT_EDP)
+@@ -2853,7 +2854,8 @@ static void vlv_steal_power_sequencer(struct drm_device *dev,
+ 	if (WARN_ON(pipe != PIPE_A && pipe != PIPE_B))
+ 		return;
+ 
+-	for_each_intel_encoder(dev, encoder) {
++	list_for_each_entry(encoder, &dev->mode_config.encoder_list,
++			    base.head) {
+ 		struct intel_dp *intel_dp;
+ 		enum port port;
+ 
+diff --git a/drivers/gpu/drm/i915/intel_opregion.c b/drivers/gpu/drm/i915/intel_opregion.c
+index 96dbd71..e8b20b7 100644
+--- a/drivers/gpu/drm/i915/intel_opregion.c
++++ b/drivers/gpu/drm/i915/intel_opregion.c
+@@ -26,7 +26,6 @@
+  */
+ 
+ #include <linux/acpi.h>
+-#include <linux/dmi.h>
+ #include <acpi/video.h>
+ 
+ #include <drm/drmP.h>
+@@ -250,7 +249,7 @@ struct opregion_asle_ext {
+ static int swsci(struct drm_device *dev, u32 function, u32 parm, u32 *parm_out)
+ {
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+-	struct opregion_swsci *swsci = dev_priv->opregion.swsci;
++	struct opregion_swsci __iomem *swsci = dev_priv->opregion.swsci;
+ 	u32 main_function, sub_function, scic;
+ 	u16 pci_swsci;
+ 	u32 dslp;
+@@ -275,7 +274,7 @@ static int swsci(struct drm_device *dev, u32 function, u32 parm, u32 *parm_out)
+ 	}
+ 
+ 	/* Driver sleep timeout in ms. */
+-	dslp = swsci->dslp;
++	dslp = ioread32(&swsci->dslp);
+ 	if (!dslp) {
+ 		/* The spec says 2ms should be the default, but it's too small
+ 		 * for some machines. */
+@@ -288,7 +287,7 @@ static int swsci(struct drm_device *dev, u32 function, u32 parm, u32 *parm_out)
+ 	}
+ 
+ 	/* The spec tells us to do this, but we are the only user... */
+-	scic = swsci->scic;
++	scic = ioread32(&swsci->scic);
+ 	if (scic & SWSCI_SCIC_INDICATOR) {
+ 		DRM_DEBUG_DRIVER("SWSCI request already in progress\n");
+ 		return -EBUSY;
+@@ -296,8 +295,8 @@ static int swsci(struct drm_device *dev, u32 function, u32 parm, u32 *parm_out)
+ 
+ 	scic = function | SWSCI_SCIC_INDICATOR;
+ 
+-	swsci->parm = parm;
+-	swsci->scic = scic;
++	iowrite32(parm, &swsci->parm);
++	iowrite32(scic, &swsci->scic);
+ 
+ 	/* Ensure SCI event is selected and event trigger is cleared. */
+ 	pci_read_config_word(dev->pdev, PCI_SWSCI, &pci_swsci);
+@@ -312,7 +311,7 @@ static int swsci(struct drm_device *dev, u32 function, u32 parm, u32 *parm_out)
+ 	pci_write_config_word(dev->pdev, PCI_SWSCI, pci_swsci);
+ 
+ 	/* Poll for the result. */
+-#define C (((scic = swsci->scic) & SWSCI_SCIC_INDICATOR) == 0)
++#define C (((scic = ioread32(&swsci->scic)) & SWSCI_SCIC_INDICATOR) == 0)
+ 	if (wait_for(C, dslp)) {
+ 		DRM_DEBUG_DRIVER("SWSCI request timed out\n");
+ 		return -ETIMEDOUT;
+@@ -328,7 +327,7 @@ static int swsci(struct drm_device *dev, u32 function, u32 parm, u32 *parm_out)
+ 	}
+ 
+ 	if (parm_out)
+-		*parm_out = swsci->parm;
++		*parm_out = ioread32(&swsci->parm);
+ 
+ 	return 0;
+ 
+@@ -422,8 +421,8 @@ int intel_opregion_notify_adapter(struct drm_device *dev, pci_power_t state)
+ static u32 asle_set_backlight(struct drm_device *dev, u32 bclp)
+ {
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+-	struct intel_connector *connector;
+-	struct opregion_asle *asle = dev_priv->opregion.asle;
++	struct intel_connector *intel_connector;
++	struct opregion_asle __iomem *asle = dev_priv->opregion.asle;
+ 
+ 	DRM_DEBUG_DRIVER("bclp = 0x%08x\n", bclp);
+ 
+@@ -446,9 +445,9 @@ static u32 asle_set_backlight(struct drm_device *dev, u32 bclp)
+ 	 * only one).
+ 	 */
+ 	DRM_DEBUG_KMS("updating opregion backlight %d/255\n", bclp);
+-	for_each_intel_connector(dev, connector)
+-		intel_panel_set_backlight_acpi(connector, bclp, 255);
+-	asle->cblv = DIV_ROUND_UP(bclp * 100, 255) | ASLE_CBLV_VALID;
++	list_for_each_entry(intel_connector, &dev->mode_config.connector_list, base.head)
++		intel_panel_set_backlight_acpi(intel_connector, bclp, 255);
++	iowrite32(DIV_ROUND_UP(bclp * 100, 255) | ASLE_CBLV_VALID, &asle->cblv);
+ 
+ 	drm_modeset_unlock(&dev->mode_config.connection_mutex);
+ 
+@@ -535,14 +534,14 @@ static void asle_work(struct work_struct *work)
+ 	struct drm_i915_private *dev_priv =
+ 		container_of(opregion, struct drm_i915_private, opregion);
+ 	struct drm_device *dev = dev_priv->dev;
+-	struct opregion_asle *asle = dev_priv->opregion.asle;
++	struct opregion_asle __iomem *asle = dev_priv->opregion.asle;
+ 	u32 aslc_stat = 0;
+ 	u32 aslc_req;
+ 
+ 	if (!asle)
+ 		return;
+ 
+-	aslc_req = asle->aslc;
++	aslc_req = ioread32(&asle->aslc);
+ 
+ 	if (!(aslc_req & ASLC_REQ_MSK)) {
+ 		DRM_DEBUG_DRIVER("No request on ASLC interrupt 0x%08x\n",
+@@ -551,34 +550,34 @@ static void asle_work(struct work_struct *work)
+ 	}
+ 
+ 	if (aslc_req & ASLC_SET_ALS_ILLUM)
+-		aslc_stat |= asle_set_als_illum(dev, asle->alsi);
++		aslc_stat |= asle_set_als_illum(dev, ioread32(&asle->alsi));
+ 
+ 	if (aslc_req & ASLC_SET_BACKLIGHT)
+-		aslc_stat |= asle_set_backlight(dev, asle->bclp);
++		aslc_stat |= asle_set_backlight(dev, ioread32(&asle->bclp));
+ 
+ 	if (aslc_req & ASLC_SET_PFIT)
+-		aslc_stat |= asle_set_pfit(dev, asle->pfit);
++		aslc_stat |= asle_set_pfit(dev, ioread32(&asle->pfit));
+ 
+ 	if (aslc_req & ASLC_SET_PWM_FREQ)
+-		aslc_stat |= asle_set_pwm_freq(dev, asle->pfmb);
++		aslc_stat |= asle_set_pwm_freq(dev, ioread32(&asle->pfmb));
+ 
+ 	if (aslc_req & ASLC_SUPPORTED_ROTATION_ANGLES)
+ 		aslc_stat |= asle_set_supported_rotation_angles(dev,
+-							asle->srot);
++							ioread32(&asle->srot));
+ 
+ 	if (aslc_req & ASLC_BUTTON_ARRAY)
+-		aslc_stat |= asle_set_button_array(dev, asle->iuer);
++		aslc_stat |= asle_set_button_array(dev, ioread32(&asle->iuer));
+ 
+ 	if (aslc_req & ASLC_CONVERTIBLE_INDICATOR)
+-		aslc_stat |= asle_set_convertible(dev, asle->iuer);
++		aslc_stat |= asle_set_convertible(dev, ioread32(&asle->iuer));
+ 
+ 	if (aslc_req & ASLC_DOCKING_INDICATOR)
+-		aslc_stat |= asle_set_docking(dev, asle->iuer);
++		aslc_stat |= asle_set_docking(dev, ioread32(&asle->iuer));
+ 
+ 	if (aslc_req & ASLC_ISCT_STATE_CHANGE)
+ 		aslc_stat |= asle_isct_state(dev);
+ 
+-	asle->aslc = aslc_stat;
++	iowrite32(aslc_stat, &asle->aslc);
+ }
+ 
+ void intel_opregion_asle_intr(struct drm_device *dev)
+@@ -603,8 +602,8 @@ static int intel_opregion_video_event(struct notifier_block *nb,
+ 	   Linux, these are handled by the dock, button and video drivers.
+ 	*/
+ 
++	struct opregion_acpi __iomem *acpi;
+ 	struct acpi_bus_event *event = data;
+-	struct opregion_acpi *acpi;
+ 	int ret = NOTIFY_OK;
+ 
+ 	if (strcmp(event->device_class, ACPI_VIDEO_CLASS) != 0)
+@@ -615,10 +614,11 @@ static int intel_opregion_video_event(struct notifier_block *nb,
+ 
+ 	acpi = system_opregion->acpi;
+ 
+-	if (event->type == 0x80 && ((acpi->cevt & 1) == 0))
++	if (event->type == 0x80 &&
++	    (ioread32(&acpi->cevt) & 1) == 0)
+ 		ret = NOTIFY_BAD;
+ 
+-	acpi->csts = 0;
++	iowrite32(0, &acpi->csts);
+ 
+ 	return ret;
+ }
+@@ -638,14 +638,14 @@ static u32 get_did(struct intel_opregion *opregion, int i)
+ 	u32 did;
+ 
+ 	if (i < ARRAY_SIZE(opregion->acpi->didl)) {
+-		did = opregion->acpi->didl[i];
++		did = ioread32(&opregion->acpi->didl[i]);
+ 	} else {
+ 		i -= ARRAY_SIZE(opregion->acpi->didl);
+ 
+ 		if (WARN_ON(i >= ARRAY_SIZE(opregion->acpi->did2)))
+ 			return 0;
+ 
+-		did = opregion->acpi->did2[i];
++		did = ioread32(&opregion->acpi->did2[i]);
+ 	}
+ 
+ 	return did;
+@@ -654,14 +654,14 @@ static u32 get_did(struct intel_opregion *opregion, int i)
+ static void set_did(struct intel_opregion *opregion, int i, u32 val)
+ {
+ 	if (i < ARRAY_SIZE(opregion->acpi->didl)) {
+-		opregion->acpi->didl[i] = val;
++		iowrite32(val, &opregion->acpi->didl[i]);
+ 	} else {
+ 		i -= ARRAY_SIZE(opregion->acpi->didl);
+ 
+ 		if (WARN_ON(i >= ARRAY_SIZE(opregion->acpi->did2)))
+ 			return;
+ 
+-		opregion->acpi->did2[i] = val;
++		iowrite32(val, &opregion->acpi->did2[i]);
+ 	}
+ }
+ 
+@@ -783,7 +783,7 @@ static void intel_setup_cadls(struct drm_device *dev)
+ 	 * there are less than eight devices. */
+ 	do {
+ 		disp_id = get_did(opregion, i);
+-		opregion->acpi->cadl[i] = disp_id;
++		iowrite32(disp_id, &opregion->acpi->cadl[i]);
+ 	} while (++i < 8 && disp_id != 0);
+ }
+ 
+@@ -802,16 +802,16 @@ void intel_opregion_init(struct drm_device *dev)
+ 		/* Notify BIOS we are ready to handle ACPI video ext notifs.
+ 		 * Right now, all the events are handled by the ACPI video module.
+ 		 * We don't actually need to do anything with them. */
+-		opregion->acpi->csts = 0;
+-		opregion->acpi->drdy = 1;
++		iowrite32(0, &opregion->acpi->csts);
++		iowrite32(1, &opregion->acpi->drdy);
+ 
+ 		system_opregion = opregion;
+ 		register_acpi_notifier(&intel_opregion_notifier);
+ 	}
+ 
+ 	if (opregion->asle) {
+-		opregion->asle->tche = ASLE_TCHE_BLC_EN;
+-		opregion->asle->ardy = ASLE_ARDY_READY;
++		iowrite32(ASLE_TCHE_BLC_EN, &opregion->asle->tche);
++		iowrite32(ASLE_ARDY_READY, &opregion->asle->ardy);
+ 	}
+ }
+ 
+@@ -824,19 +824,19 @@ void intel_opregion_fini(struct drm_device *dev)
+ 		return;
+ 
+ 	if (opregion->asle)
+-		opregion->asle->ardy = ASLE_ARDY_NOT_READY;
++		iowrite32(ASLE_ARDY_NOT_READY, &opregion->asle->ardy);
+ 
+ 	cancel_work_sync(&dev_priv->opregion.asle_work);
+ 
+ 	if (opregion->acpi) {
+-		opregion->acpi->drdy = 0;
++		iowrite32(0, &opregion->acpi->drdy);
+ 
+ 		system_opregion = NULL;
+ 		unregister_acpi_notifier(&intel_opregion_notifier);
+ 	}
+ 
+ 	/* just clear all opregion memory pointers now */
+-	memunmap(opregion->header);
++	iounmap(opregion->header);
+ 	opregion->header = NULL;
+ 	opregion->acpi = NULL;
+ 	opregion->swsci = NULL;
+@@ -905,33 +905,14 @@ static void swsci_setup(struct drm_device *dev)
+ static inline void swsci_setup(struct drm_device *dev) {}
+ #endif  /* CONFIG_ACPI */
+ 
+-static int intel_no_opregion_vbt_callback(const struct dmi_system_id *id)
+-{
+-	DRM_DEBUG_KMS("Falling back to manually reading VBT from "
+-		      "VBIOS ROM for %s\n", id->ident);
+-	return 1;
+-}
+-
+-static const struct dmi_system_id intel_no_opregion_vbt[] = {
+-	{
+-		.callback = intel_no_opregion_vbt_callback,
+-		.ident = "ThinkCentre A57",
+-		.matches = {
+-			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+-			DMI_MATCH(DMI_PRODUCT_NAME, "97027RG"),
+-		},
+-	},
+-	{ }
+-};
+-
+ int intel_opregion_setup(struct drm_device *dev)
+ {
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+ 	struct intel_opregion *opregion = &dev_priv->opregion;
++	void __iomem *base;
+ 	u32 asls, mboxes;
+ 	char buf[sizeof(OPREGION_SIGNATURE)];
+ 	int err = 0;
+-	void *base;
+ 
+ 	BUILD_BUG_ON(sizeof(struct opregion_header) != 0x100);
+ 	BUILD_BUG_ON(sizeof(struct opregion_acpi) != 0x100);
+@@ -950,11 +931,11 @@ int intel_opregion_setup(struct drm_device *dev)
+ 	INIT_WORK(&opregion->asle_work, asle_work);
+ #endif
+ 
+-	base = memremap(asls, OPREGION_SIZE, MEMREMAP_WB);
++	base = acpi_os_ioremap(asls, OPREGION_SIZE);
+ 	if (!base)
+ 		return -ENOMEM;
+ 
+-	memcpy(buf, base, sizeof(buf));
++	memcpy_fromio(buf, base, sizeof(buf));
+ 
+ 	if (memcmp(buf, OPREGION_SIGNATURE, 16)) {
+ 		DRM_DEBUG_DRIVER("opregion signature mismatch\n");
+@@ -962,9 +943,11 @@ int intel_opregion_setup(struct drm_device *dev)
+ 		goto err_out;
+ 	}
+ 	opregion->header = base;
++	opregion->vbt = base + OPREGION_VBT_OFFSET;
++
+ 	opregion->lid_state = base + ACPI_CLID;
+ 
+-	mboxes = opregion->header->mboxes;
++	mboxes = ioread32(&opregion->header->mboxes);
+ 	if (mboxes & MBOX_ACPI) {
+ 		DRM_DEBUG_DRIVER("Public ACPI methods supported\n");
+ 		opregion->acpi = base + OPREGION_ACPI_OFFSET;
+@@ -980,26 +963,15 @@ int intel_opregion_setup(struct drm_device *dev)
+ 		DRM_DEBUG_DRIVER("ASLE supported\n");
+ 		opregion->asle = base + OPREGION_ASLE_OFFSET;
+ 
+-		opregion->asle->ardy = ASLE_ARDY_NOT_READY;
++		iowrite32(ASLE_ARDY_NOT_READY, &opregion->asle->ardy);
+ 	}
+ 
+ 	if (mboxes & MBOX_ASLE_EXT)
+ 		DRM_DEBUG_DRIVER("ASLE extension supported\n");
+ 
+-	if (!dmi_check_system(intel_no_opregion_vbt)) {
+-		const void *vbt = base + OPREGION_VBT_OFFSET;
+-		u32 vbt_size = OPREGION_ASLE_EXT_OFFSET - OPREGION_VBT_OFFSET;
+-
+-		if (intel_bios_is_valid_vbt(vbt, vbt_size)) {
+-			DRM_DEBUG_KMS("Found valid VBT in ACPI OpRegion\n");
+-			opregion->vbt = vbt;
+-			opregion->vbt_size = vbt_size;
+-		}
+-	}
+-
+ 	return 0;
+ 
+ err_out:
+-	memunmap(base);
++	iounmap(base);
+ 	return err;
+ }
+diff --git a/drivers/gpu/drm/i915/intel_panel.c b/drivers/gpu/drm/i915/intel_panel.c
+index 21ee647..e0f04d7 100644
+--- a/drivers/gpu/drm/i915/intel_panel.c
++++ b/drivers/gpu/drm/i915/intel_panel.c
+@@ -381,7 +381,7 @@ intel_panel_detect(struct drm_device *dev)
+ 
+ 	/* Assume that the BIOS does not lie through the OpRegion... */
+ 	if (!i915.panel_ignore_lid && dev_priv->opregion.lid_state) {
+-		return *dev_priv->opregion.lid_state & 0x1 ?
++		return ioread32(dev_priv->opregion.lid_state) & 0x1 ?
+ 			connector_status_connected :
+ 			connector_status_disconnected;
+ 	}
+@@ -1805,7 +1805,7 @@ void intel_backlight_register(struct drm_device *dev)
+ {
+ 	struct intel_connector *connector;
+ 
+-	for_each_intel_connector(dev, connector)
++	list_for_each_entry(connector, &dev->mode_config.connector_list, base.head)
+ 		intel_backlight_device_register(connector);
+ }
+ 
+@@ -1813,6 +1813,6 @@ void intel_backlight_unregister(struct drm_device *dev)
+ {
+ 	struct intel_connector *connector;
+ 
+-	for_each_intel_connector(dev, connector)
++	list_for_each_entry(connector, &dev->mode_config.connector_list, base.head)
+ 		intel_backlight_device_unregister(connector);
+ }
+diff --git a/drivers/gpu/drm/i915/intel_pm.c b/drivers/gpu/drm/i915/intel_pm.c
+index 347d4df..b2ea779 100644
+--- a/drivers/gpu/drm/i915/intel_pm.c
++++ b/drivers/gpu/drm/i915/intel_pm.c
+@@ -3342,7 +3342,7 @@ static void skl_write_wm_values(struct drm_i915_private *dev_priv,
+ 	struct drm_device *dev = dev_priv->dev;
+ 	struct intel_crtc *crtc;
+ 
+-	for_each_intel_crtc(dev, crtc) {
++	list_for_each_entry(crtc, &dev->mode_config.crtc_list, base.head) {
+ 		int i, level, max_level = ilk_wm_max_level(dev);
+ 		enum pipe pipe = crtc->pipe;
+ 
+@@ -3551,7 +3551,8 @@ static void skl_update_other_pipe_wm(struct drm_device *dev,
+ 	 * Otherwise, because of this_crtc being freshly enabled/disabled, the
+ 	 * other active pipes need new DDB allocation and WM values.
+ 	 */
+-	for_each_intel_crtc(dev, intel_crtc) {
++	list_for_each_entry(intel_crtc, &dev->mode_config.crtc_list,
++				base.head) {
+ 		struct skl_pipe_wm pipe_wm = {};
+ 		bool wm_changed;
+ 

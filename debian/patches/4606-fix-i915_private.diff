@@ -1,0 +1,87 @@
+--- a/drivers/gpu/drm/i915/i915_drv.h
++++ b/drivers/gpu/drm/i915/i915_drv.h
+@@ -1913,11 +1913,9 @@ struct drm_i915_private {
+ 
+ 	struct drm_i915_gem_object *vlv_pctx;
+ 
+-#ifdef CONFIG_DRM_FBDEV_EMULATION
+ 	/* list of fbdev register on this device */
+ 	struct intel_fbdev *fbdev;
+ 	struct work_struct fbdev_suspend_work;
+-#endif
+ 
+ 	struct drm_property *broadcast_rgb_property;
+ 	struct drm_property *force_audio_property;
+--- a/drivers/gpu/drm/i915/intel_drv.h
++++ b/drivers/gpu/drm/i915/intel_drv.h
+@@ -1296,7 +1296,7 @@ void intel_dvo_init(struct drm_device *d
+ 
+ 
+ /* legacy fbdev emulation in intel_fbdev.c */
+-#ifdef CONFIG_DRM_FBDEV_EMULATION
++#ifdef CONFIG_DRM_I915_FBDEV
+ extern int intel_fbdev_init(struct drm_device *dev);
+ extern void intel_fbdev_initial_config_async(struct drm_device *dev);
+ extern void intel_fbdev_fini(struct drm_device *dev);
+--- a/drivers/gpu/drm/i915/intel_dp_mst.c
++++ b/drivers/gpu/drm/i915/intel_dp_mst.c
+@@ -435,7 +435,7 @@ static bool intel_dp_mst_get_hw_state(st
+ 
+ static void intel_connector_add_to_fbdev(struct intel_connector *connector)
+ {
+-#ifdef CONFIG_DRM_FBDEV_EMULATION
++#ifdef CONFIG_DRM_I915_FBDEV
+ 	struct drm_i915_private *dev_priv = to_i915(connector->base.dev);
+ 
+ 	if (dev_priv->fbdev)
+@@ -446,7 +446,7 @@ static void intel_connector_add_to_fbdev
+ 
+ static void intel_connector_remove_from_fbdev(struct intel_connector *connector)
+ {
+-#ifdef CONFIG_DRM_FBDEV_EMULATION
++#ifdef CONFIG_DRM_I915_FBDEV
+ 	struct drm_i915_private *dev_priv = to_i915(connector->base.dev);
+ 
+ 	if (dev_priv->fbdev)
+--- a/include/drm/drm_fb_helper.h
++++ b/include/drm/drm_fb_helper.h
+@@ -218,7 +218,7 @@ struct drm_fb_helper {
+ 	bool atomic;
+ };
+ 
+-#ifdef CONFIG_DRM_FBDEV_EMULATION
++#ifdef CONFIG_DRM_I915_FBDEV
+ int drm_fb_helper_modinit(void);
+ void drm_fb_helper_prepare(struct drm_device *dev, struct drm_fb_helper *helper,
+ 			   const struct drm_fb_helper_funcs *funcs);
+--- a/drivers/gpu/drm/i915/i915_debugfs.c
++++ b/drivers/gpu/drm/i915/i915_debugfs.c
+@@ -1898,7 +1898,7 @@ static int i915_gem_framebuffer_info(str
+ 	struct intel_framebuffer *fbdev_fb = NULL;
+ 	struct drm_framebuffer *drm_fb;
+ 
+-#ifdef CONFIG_DRM_FBDEV_EMULATION
++#ifdef CONFIG_DRM_I915_FBDEV
+        if (to_i915(dev)->fbdev) {
+                fbdev_fb = to_intel_framebuffer(to_i915(dev)->fbdev->helper.fb);
+ 
+--- a/drivers/gpu/drm/i915/intel_display.c
++++ b/drivers/gpu/drm/i915/intel_display.c
+@@ -10323,7 +10323,7 @@ static struct drm_framebuffer *
+ mode_fits_in_fbdev(struct drm_device *dev,
+ 		   struct drm_display_mode *mode)
+ {
+-#ifdef CONFIG_DRM_FBDEV_EMULATION
++#ifdef CONFIG_DRM_I915_FBDEV
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+ 	struct drm_i915_gem_object *obj;
+ 	struct drm_framebuffer *fb;
+@@ -14869,7 +14869,7 @@ intel_user_framebuffer_create(struct drm
+ 	return fb;
+ }
+ 
+-#ifndef CONFIG_DRM_FBDEV_EMULATION
++#ifndef CONFIG_DRM_I915_FBDEV
+ static inline void intel_fbdev_output_poll_changed(struct drm_device *dev)
+ {
+ }

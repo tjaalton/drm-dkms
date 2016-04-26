@@ -1,0 +1,11 @@
+--- a/drivers/gpu/drm/i915/i915_gem_shrinker.c
++++ b/drivers/gpu/drm/i915/i915_gem_shrinker.c
+@@ -34,6 +34,8 @@
+ #include "i915_drv.h"
+ #include "i915_trace.h"
+ 
++atomic_long_t nr_swap_pages;
++
+ static bool mutex_is_locked_by(struct mutex *mutex, struct task_struct *task)
+ {
+ 	if (!mutex_is_locked(mutex))

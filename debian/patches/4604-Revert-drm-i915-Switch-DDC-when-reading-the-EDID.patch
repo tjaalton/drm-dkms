@@ -1,0 +1,87 @@
+From de91e959ee29f7f0914ad87a7cdff232b46ce022 Mon Sep 17 00:00:00 2001
+From: Timo Aaltonen <timo.aaltonen@canonical.com>
+Date: Tue, 12 Apr 2016 14:25:21 +0300
+Subject: [PATCH] Revert "drm/i915: Switch DDC when reading the EDID"
+
+This reverts commit 4eddaeecf92341bf94ce1bf9dd98bb2cee267b14.
+---
+ drivers/gpu/drm/i915/intel_lvds.c | 8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
+
+--- a/drivers/gpu/drm/i915/intel_lvds.c
++++ b/drivers/gpu/drm/i915/intel_lvds.c
+@@ -31,7 +31,6 @@
+ #include <linux/dmi.h>
+ #include <linux/i2c.h>
+ #include <linux/slab.h>
+-#include <linux/vga_switcheroo.h>
+ #include <drm/drmP.h>
+ #include <drm/drm_atomic_helper.h>
+ #include <drm/drm_crtc.h>
+@@ -1089,12 +1088,7 @@ void intel_lvds_init(struct drm_device *
+ 	 * preferred mode is the right one.
+ 	 */
+ 	mutex_lock(&dev->mode_config.mutex);
+-	if (vga_switcheroo_handler_flags() & VGA_SWITCHEROO_CAN_SWITCH_DDC)
+-		edid = drm_get_edid_switcheroo(connector,
+-				    intel_gmbus_get_adapter(dev_priv, pin));
+-	else
+-		edid = drm_get_edid(connector,
+-				    intel_gmbus_get_adapter(dev_priv, pin));
++	edid = drm_get_edid(connector, intel_gmbus_get_adapter(dev_priv, pin));
+ 	if (edid) {
+ 		if (drm_add_edid_modes(connector, edid)) {
+ 			drm_mode_connector_update_edid_property(connector,
+--- a/drivers/gpu/drm/drm_edid.c
++++ b/drivers/gpu/drm/drm_edid.c
+@@ -32,7 +32,6 @@
+ #include <linux/hdmi.h>
+ #include <linux/i2c.h>
+ #include <linux/module.h>
+-#include <linux/vga_switcheroo.h>
+ #include <drm/drmP.h>
+ #include <drm/drm_edid.h>
+ #include <drm/drm_displayid.h>
+@@ -1396,31 +1395,6 @@ struct edid *drm_get_edid(struct drm_con
+ EXPORT_SYMBOL(drm_get_edid);
+ 
+ /**
+- * drm_get_edid_switcheroo - get EDID data for a vga_switcheroo output
+- * @connector: connector we're probing
+- * @adapter: I2C adapter to use for DDC
+- *
+- * Wrapper around drm_get_edid() for laptops with dual GPUs using one set of
+- * outputs. The wrapper adds the requisite vga_switcheroo calls to temporarily
+- * switch DDC to the GPU which is retrieving EDID.
+- *
+- * Return: Pointer to valid EDID or %NULL if we couldn't find any.
+- */
+-struct edid *drm_get_edid_switcheroo(struct drm_connector *connector,
+-				     struct i2c_adapter *adapter)
+-{
+-	struct pci_dev *pdev = connector->dev->pdev;
+-	struct edid *edid;
+-
+-	vga_switcheroo_lock_ddc(pdev);
+-	edid = drm_get_edid(connector, adapter);
+-	vga_switcheroo_unlock_ddc(pdev);
+-
+-	return edid;
+-}
+-EXPORT_SYMBOL(drm_get_edid_switcheroo);
+-
+-/**
+  * drm_edid_duplicate - duplicate an EDID and the extensions
+  * @edid: EDID to duplicate
+  *
+--- a/include/drm/drm_crtc.h
++++ b/include/drm/drm_crtc.h
+@@ -2337,8 +2337,6 @@ extern void drm_property_destroy_user_bl
+ extern bool drm_probe_ddc(struct i2c_adapter *adapter);
+ extern struct edid *drm_get_edid(struct drm_connector *connector,
+ 				 struct i2c_adapter *adapter);
+-extern struct edid *drm_get_edid_switcheroo(struct drm_connector *connector,
+-					    struct i2c_adapter *adapter);
+ extern struct edid *drm_edid_duplicate(const struct edid *edid);
+ extern int drm_add_edid_modes(struct drm_connector *connector, struct edid *edid);
+ extern void drm_mode_config_init(struct drm_device *dev);
