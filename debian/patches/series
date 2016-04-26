@@ -1,14 +1,4 @@
-#0001-Add-backport-checks.patch
-#0002-Add-alias-for-clflushopt.patch
-#0003-Copy-sm_mb__before_atomic-into-backport.h.patch
 backport.patch
-0004-Backport-acpi_evaluate-functions.patch
-0005-Sideport-drivers-acpi-video.c-from-ubuntu-trusty-tre.patch
-0006-Export-acpi_video_verify_backlight_support-as-in-3.1.patch
-0008-Install-video.ko.patch
-0009-Move-simple_dname-into-drm_stub.c.patch
-0010-Revert-use-of-vgacon.patch
-0011-Import-interval_tree-for-i915_gem_userptr.c.patch
 # -> 4.2
 4201-Revert-drm-add-bus_formats-and-num_bus_formats-field.patch
 4202-Revert-x86-mm-mtrr-Avoid-ifdeffery-with-phys_wc_to_m.patch
