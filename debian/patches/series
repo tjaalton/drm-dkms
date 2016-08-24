@@ -20,3 +20,5 @@ rename-to-i915-bpo.diff
 4611-revert-bunch.diff
 4612-Revert-drm-i915-Tear-down-fbdev-if-initialization-fa.patch
 
+revert-audio-stuff.diff
+0001-Revert-drm-i915-set-proper-N-CTS-in-modeset.patch
