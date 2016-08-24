@@ -1,11 +1,11 @@
 --- a/drivers/gpu/drm/i915/i915_drv.h
 +++ b/drivers/gpu/drm/i915/i915_drv.h
-@@ -57,7 +57,7 @@
+@@ -67,7 +67,7 @@
  /* General customization:
   */
  
 -#define DRIVER_NAME		"i915"
 +#define DRIVER_NAME		"i915_bpo"
  #define DRIVER_DESC		"Intel Graphics"
- #define DRIVER_DATE		"20160229"
+ #define DRIVER_DATE		"20160711"
  

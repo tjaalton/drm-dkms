@@ -1,5 +1,5 @@
 Format-Specification: http://dep.debian.net/deps/dep5/
-Name: i915-4.6-3.19
+Name: i915-4.8-4.4
 
 Files: *
 Copyright: 2011 Linus Torvalds and others.

@@ -1,24 +1,3 @@
 backport.patch
-# -> 4.2
-4201-Revert-drm-add-bus_formats-and-num_bus_formats-field.patch
-4202-Revert-x86-mm-mtrr-Avoid-ifdeffery-with-phys_wc_to_m.patch
-4203-revert-dma-buf-cleanup-dma-buf-export.diff
-4204-Revert-mm-fault-drm-i915-Use-pagefault_disabled-to-c.patch
-4207-Revert-drm-i915-Port-to-new-backlight-interface-sele.patch
 # -> 4.6
 rename-to-i915-bpo.diff
-4601-Revert-drm-i915-Defer-probe-if-gmux-is-present-but-i.patch
-4602-add-pm_runtime_get_if_in_use.diff
-4603-add-sign_extend64.diff
-4604-Revert-drm-i915-Switch-DDC-when-reading-the-EDID.patch
-4605-Revert-mm-gup-Introduce-get_user_pages_remote.patch
-4606-fix-i915_private.diff
-4607-Revert-drm-edid-convert-to-use-match_string-helper.patch
-4608-fix-nonatomic-include.diff
-4609-import-nr_swap_pages.diff
-4610-Revert-drm-i915-opregion-handle-VBT-sizes-bigger-tha.patch
-4611-revert-bunch.diff
-4612-Revert-drm-i915-Tear-down-fbdev-if-initialization-fa.patch
-
-revert-audio-stuff.diff
-0001-Revert-drm-i915-set-proper-N-CTS-in-modeset.patch

@@ -20,14 +20,14 @@
   *
 --- a/drivers/gpu/drm/i915/i915_gem.c
 +++ b/drivers/gpu/drm/i915/i915_gem.c
-@@ -37,6 +37,7 @@
+@@ -38,6 +38,7 @@
  #include <linux/swap.h>
  #include <linux/pci.h>
  #include <linux/dma-buf.h>
 +#include <backport.h>
  
- #define RQ_BUG_ON(expr)
- 
+ static void i915_gem_object_flush_gtt_write_domain(struct drm_i915_gem_object *obj);
+ static void i915_gem_object_flush_cpu_write_domain(struct drm_i915_gem_object *obj);
 --- a/drivers/gpu/drm/i915/intel_dp.c
 +++ b/drivers/gpu/drm/i915/intel_dp.c
 @@ -38,6 +38,7 @@
@@ -46,5 +46,16 @@
  #include "intel_drv.h"
 +#include <backport.h>
  
- #define PCI_ASLE		0xe4
- #define PCI_ASLS		0xfc
+ #define OPREGION_HEADER_OFFSET 0
+ #define OPREGION_ACPI_OFFSET   0x100
+--- a/drivers/gpu/drm/i915/i915_drv.c
++++ b/drivers/gpu/drm/i915/i915_drv.c
+@@ -50,6 +50,8 @@
+ #include "i915_vgpu.h"
+ #include "intel_drv.h"
+ 
++#include <backport.h>
++
+ static struct drm_driver driver;
+ 
+ static unsigned int i915_load_fail_count;

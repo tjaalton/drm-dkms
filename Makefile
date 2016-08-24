@@ -12,13 +12,15 @@ CPATH       := $(KBUILD_EXTMOD)/drivers/gpu/drm/i915
 INC_INCPATH := $(KBUILD_EXTMOD)/include
 DRMD        := drivers/gpu/drm/
 
-# core
+# core driver code
 I915_ITEMS  := i915_drv \
                i915_irq \
                i915_params \
+               i915_pci \
                i915_suspend \
                i915_sysfs \
                intel_csr \
+               intel_device_info \
                intel_pm \
                intel_runtime_pm
 
@@ -40,6 +42,7 @@ I915_ITEMS  += i915_cmd_parser \
                i915_gem_userptr \
                i915_gpu_error \
                i915_trace_points \
+	       intel_breadcrumbs \
 	       intel_lrc \
                intel_mocs \
                intel_ringbuffer \
@@ -60,7 +63,10 @@ I915_ITEMS +=  intel_audio \
                intel_atomic \
                intel_atomic_plane \
                intel_bios \
+               intel_color \
                intel_display \
+               intel_dpio_phy \
+               intel_dpll_mgr \
                intel_fbc \
 	       intel_fifo_underrun \
 	       intel_frontbuffer \
@@ -80,6 +86,7 @@ I915_ITEMS +=  dvo_ch7017 \
                dvo_tfp410 \
                intel_crt \
                intel_ddi \
+               intel_dp_aux_backlight \
                intel_dp_link_training \
 	       intel_dp_mst \
                intel_dp \
@@ -97,8 +104,6 @@ I915_ITEMS +=  dvo_ch7017 \
 # virtual gpu code
 I915_ITEMS +=  i915_vgpu
 
-# legacy horrors
-I915_ITEMS +=  i915_dma
 
 # keep sorted like they are to allow easier comparison to drm/Makefile
 DRM_ITEMS   := drm_auth drm_bufs drm_cache \
@@ -107,11 +112,17 @@ DRM_ITEMS   := drm_auth drm_bufs drm_cache \
                drm_lock drm_memory drm_drv drm_vm \
                drm_scatter drm_pci \
                drm_platform drm_sysfs drm_hashtab drm_mm \
-               drm_crtc drm_modes drm_edid \
+               drm_crtc drm_fourcc drm_modes drm_edid \
                drm_info drm_debugfs drm_encoder_slave \
                drm_trace_points drm_global drm_prime \
                drm_rect drm_vma_manager drm_flip_work \
                drm_modeset_lock drm_atomic drm_bridge
+
+
+DRM_KMS_HELPER_ITEMS := drm_crtc_helper drm_dp_helper drm_probe_helper \
+                drm_plane_helper drm_dp_mst_topology drm_atomic_helper \
+                drm_kms_helper_common drm_dp_dual_mode_helper \
+                drm_simple_kms_helper drm_blend
 
 # this prioritises the DKMS package include directories over the kernel headers
 # allowing us to override header files where the 3.12.x versions have extra
@@ -127,7 +138,7 @@ ccflags-y    := -Iinclude/drm
 
 # construct the object file lists to match the in-tree Makefiles:
 drm_kms_helper-y := \
-    $(patsubst %,$(DRMD)%.o,drm_crtc_helper drm_dp_helper drm_probe_helper drm_plane_helper drm_dp_mst_topology drm_atomic_helper drm_kms_helper_common)
+    $(patsubst %,$(DRMD)%.o, $(DRM_KMS_HELPER_ITEMS))
 drm_kms_helper-$(CONFIG_DRM_LOAD_EDID_FIRMWARE) += \
     $(patsubst %,$(DRMD)%.o,drm_edid_load)
 drm_kms_helper-$(CONFIG_DRM_KMS_FB_HELPER)     += \

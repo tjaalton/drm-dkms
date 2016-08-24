@@ -1,4 +1,4 @@
-PACKAGE_NAME="i915-4.6-3.19"
+PACKAGE_NAME="i915-4.8-4.4"
 PACKAGE_VERSION="__VERSION__"
 MAKE[0]="make -C ${kernel_source_dir} M=${dkms_tree}/${PACKAGE_NAME}/${PACKAGE_VERSION}/build"
 CLEAN="make -C ${kernel_source_dir} M=${dkms_tree}/${PACKAGE_NAME}/${PACKAGE_VERSION}/build clean"
@@ -12,4 +12,4 @@ DEST_MODULE_LOCATION[1]=/updates
 DEST_MODULE_LOCATION[2]=/updates
 DEST_MODULE_LOCATION[3]=/updates
 REMAKE_INITRD="Y"
-BUILD_EXCLUSIVE_KERNEL="^3.19.*"
+BUILD_EXCLUSIVE_KERNEL="^4.4.*"
