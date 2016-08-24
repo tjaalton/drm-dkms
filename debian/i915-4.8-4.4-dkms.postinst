@@ -21,14 +21,13 @@ while read x ok status pack source kver arch;
 do
     if [ x$arch    = xall         ]; then continue; fi;
     if [ x$source  = xlinux-meta  ]; then continue; fi;
-    if [ x$source  = xlinux-meta-lts-vivid  ]; then continue; fi;
     if [ x$ok     != xok          ]; then continue; fi;
     if [ x$status != xinstalled   ]; then continue; fi;
     IFS="-. " read major minor sub extra <<< $kver;
     if [ $major -ne $major_target ]; then continue; fi;
     if [ $minor -ne $minor_target ]; then continue; fi;
 
-    kver=${kver%.*~*};
+    kver=${kver%.*};
     kernel_list=${kernel_list}${kernel_list:+ }$kver${pack#*$kver};
 done < <(dpkg-query -f "$kernel_fields" -W linux-headers-\*);
 
