@@ -91,6 +91,7 @@ I915_ITEMS +=  dvo_ch7017 \
 	       intel_dp_mst \
                intel_dp \
                intel_dsi \
+               intel_dsi_dcs_backlight \
                intel_dsi_panel_vbt \
                intel_dsi_pll \
                intel_dvo \
@@ -104,6 +105,10 @@ I915_ITEMS +=  dvo_ch7017 \
 # virtual gpu code
 I915_ITEMS +=  i915_vgpu
 
+ifeq ($(CONFIG_DRM_I915_GVT),y)
+I915_ITEMS += intel_gvt
+include $(src)/gvt/Makefile
+endif
 
 # keep sorted like they are to allow easier comparison to drm/Makefile
 DRM_ITEMS   := drm_auth drm_bufs drm_cache \
@@ -155,7 +160,7 @@ intel_ips-y := $(patsubst %,drivers/platform/x86/%.o,intel_ips)
 i915_bpo-$(CONFIG_COMPAT)            += $(patsubst %,$(DRMD)i915/%.o,i915_ioc32)
 i915_bpo-$(CONFIG_DEBUG_FS)          += $(patsubst %,$(DRMD)i915/%.o,i915_debugfs)
 i915_bpo-$(CONFIG_ACPI)              += $(patsubst %,$(DRMD)i915/%.o,intel_acpi intel_opregion)
-i915_bpo-$(CONFIG_DRM_I915_FBDEV)    += $(patsubst %,$(DRMD)i915/%.o,intel_fbdev)
+i915_bpo-$(CONFIG_DRM_FBDEV_EMULATION) += $(patsubst %,$(DRMD)i915/%.o,intel_fbdev)
 
 drm-$(CONFIG_COMPAT)             += $(patsubst %,$(DRMD)%.o,drm_ioc32)
 drm-$(CONFIG_DRM_GEM_CMA_HELPER) += $(patsubst %,$(DRMD)%.o,drm_gem_cma_helper)
