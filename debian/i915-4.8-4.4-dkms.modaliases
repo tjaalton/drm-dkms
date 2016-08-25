@@ -1,4 +1,5 @@
-alias pci:v00008086d000022B0sv*sd*bc03sc*i* i915_bpo
-alias pci:v00008086d000022B1sv*sd*bc03sc*i* i915_bpo
-alias pci:v00008086d000022B2sv*sd*bc03sc*i* i915_bpo
-alias pci:v00008086d000022B3sv*sd*bc03sc*i* i915_bpo
+alias pci:v00008086d00000A84sv*sd*bc03sc*i* i915_bpo
+alias pci:v00008086d00001A84sv*sd*bc03sc*i* i915_bpo
+alias pci:v00008086d00001A85sv*sd*bc03sc*i* i915_bpo
+alias pci:v00008086d00005A84sv*sd*bc03sc*i* i915_bpo
+alias pci:v00008086d00005A85sv*sd*bc03sc*i* i915_bpo
