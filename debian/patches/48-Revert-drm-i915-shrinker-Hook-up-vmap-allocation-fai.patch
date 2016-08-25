@@ -1,0 +1,98 @@
+From 4fa668ceb750c969246324eb35eee777cff60fe5 Mon Sep 17 00:00:00 2001
+From: Timo Aaltonen <timo.aaltonen@canonical.com>
+Date: Wed, 24 Aug 2016 18:31:26 +0300
+Subject: [PATCH] Revert "drm/i915/shrinker: Hook up vmap allocation failure
+ notifier"
+
+This reverts commit e87666b52f00fdb373349c4e6e1c09ced964e3c5.
+---
+ drivers/gpu/drm/i915/i915_drv.h          |  1 -
+ drivers/gpu/drm/i915/i915_gem_shrinker.c | 39 --------------------------------
+ 2 files changed, 40 deletions(-)
+
+--- a/drivers/gpu/drm/i915/i915_drv.h
++++ b/drivers/gpu/drm/i915/i915_drv.h
+@@ -1317,7 +1317,6 @@ struct i915_gem_mm {
+ 	struct i915_hw_ppgtt *aliasing_ppgtt;
+ 
+ 	struct notifier_block oom_notifier;
+-	struct notifier_block vmap_notifier;
+ 	struct shrinker shrinker;
+ 	bool shrinker_no_lock_stealing;
+ 
+--- a/drivers/gpu/drm/i915/i915_gem_shrinker.c
++++ b/drivers/gpu/drm/i915/i915_gem_shrinker.c
+@@ -28,7 +28,6 @@
+ #include <linux/swap.h>
+ #include <linux/pci.h>
+ #include <linux/dma-buf.h>
+-#include <linux/vmalloc.h>
+ #include <drm/drmP.h>
+ #include <drm/i915_drm.h>
+ 
+@@ -396,47 +395,6 @@ i915_gem_shrinker_oom(struct notifier_bl
+ 	return NOTIFY_DONE;
+ }
+ 
+-static int
+-i915_gem_shrinker_vmap(struct notifier_block *nb, unsigned long event, void *ptr)
+-{
+-	struct drm_i915_private *dev_priv =
+-		container_of(nb, struct drm_i915_private, mm.vmap_notifier);
+-	struct shrinker_lock_uninterruptible slu;
+-	struct i915_vma *vma, *next;
+-	unsigned long freed_pages = 0;
+-	int ret;
+-
+-	if (!i915_gem_shrinker_lock_uninterruptible(dev_priv, &slu, 5000))
+-		return NOTIFY_DONE;
+-
+-	/* Force everything onto the inactive lists */
+-	ret = i915_gem_wait_for_idle(dev_priv);
+-	if (ret)
+-		goto out;
+-
+-	intel_runtime_pm_get(dev_priv);
+-	freed_pages += i915_gem_shrink(dev_priv, -1UL,
+-				       I915_SHRINK_BOUND |
+-				       I915_SHRINK_UNBOUND |
+-				       I915_SHRINK_ACTIVE |
+-				       I915_SHRINK_VMAPS);
+-	intel_runtime_pm_put(dev_priv);
+-
+-	/* We also want to clear any cached iomaps as they wrap vmap */
+-	list_for_each_entry_safe(vma, next,
+-				 &dev_priv->ggtt.base.inactive_list, vm_link) {
+-		unsigned long count = vma->node.size >> PAGE_SHIFT;
+-		if (vma->iomap && i915_vma_unbind(vma) == 0)
+-			freed_pages += count;
+-	}
+-
+-out:
+-	i915_gem_shrinker_unlock_uninterruptible(dev_priv, &slu);
+-
+-	*(unsigned long *)ptr += freed_pages;
+-	return NOTIFY_DONE;
+-}
+-
+ /**
+  * i915_gem_shrinker_init - Initialize i915 shrinker
+  * @dev_priv: i915 device
+@@ -452,9 +410,6 @@ void i915_gem_shrinker_init(struct drm_i
+ 
+ 	dev_priv->mm.oom_notifier.notifier_call = i915_gem_shrinker_oom;
+ 	WARN_ON(register_oom_notifier(&dev_priv->mm.oom_notifier));
+-
+-	dev_priv->mm.vmap_notifier.notifier_call = i915_gem_shrinker_vmap;
+-	WARN_ON(register_vmap_purge_notifier(&dev_priv->mm.vmap_notifier));
+ }
+ 
+ /**
+@@ -465,7 +420,6 @@ void i915_gem_shrinker_init(struct drm_i
+  */
+ void i915_gem_shrinker_cleanup(struct drm_i915_private *dev_priv)
+ {
+-	WARN_ON(unregister_vmap_purge_notifier(&dev_priv->mm.vmap_notifier));
+ 	WARN_ON(unregister_oom_notifier(&dev_priv->mm.oom_notifier));
+ 	unregister_shrinker(&dev_priv->mm.shrinker);
+ }

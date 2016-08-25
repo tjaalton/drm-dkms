@@ -1,0 +1,22 @@
+--- a/drivers/gpu/drm/i915/intel_overlay.c
++++ b/drivers/gpu/drm/i915/intel_overlay.c
+@@ -197,7 +197,7 @@ intel_overlay_map_regs(struct intel_over
+ 	if (OVERLAY_NEEDS_PHYSICAL(dev_priv))
+ 		regs = (struct overlay_registers __iomem *)overlay->reg_bo->phys_handle->vaddr;
+ 	else
+-		regs = io_mapping_map_wc(dev_priv->ggtt.mappable,
++		regs = io_mapping_map_wc_bpo(dev_priv->ggtt.mappable,
+ 					 overlay->flip_addr,
+ 					 PAGE_SIZE);
+ 
+--- a/drivers/gpu/drm/i915/i915_gem_gtt.c
++++ b/drivers/gpu/drm/i915/i915_gem_gtt.c
+@@ -3626,7 +3626,7 @@ void __iomem *i915_vma_pin_iomap(struct
+ 
+ 	ptr = vma->iomap;
+ 	if (ptr == NULL) {
+-		ptr = io_mapping_map_wc(i915_vm_to_ggtt(vma->vm)->mappable,
++		ptr = io_mapping_map_wc_bpo(i915_vm_to_ggtt(vma->vm)->mappable,
+ 					vma->node.start,
+ 					vma->node.size);
+ 		if (ptr == NULL)

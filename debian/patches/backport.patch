@@ -59,3 +59,23 @@
  static struct drm_driver driver;
  
  static unsigned int i915_load_fail_count;
+--- a/drivers/gpu/drm/i915/i915_gem_gtt.c
++++ b/drivers/gpu/drm/i915/i915_gem_gtt.c
+@@ -31,6 +31,7 @@
+ #include "i915_vgpu.h"
+ #include "i915_trace.h"
+ #include "intel_drv.h"
++#include <backport.h>
+ 
+ /**
+  * DOC: Global GTT views
+--- a/drivers/gpu/drm/i915/intel_overlay.c
++++ b/drivers/gpu/drm/i915/intel_overlay.c
+@@ -30,6 +30,7 @@
+ #include "i915_drv.h"
+ #include "i915_reg.h"
+ #include "intel_drv.h"
++#include <backport.h>
+ 
+ /* Limits for overlay size. According to intel doc, the real limits are:
+  * Y width: 4095, UV width (planar): 2047, Y height: 2047,

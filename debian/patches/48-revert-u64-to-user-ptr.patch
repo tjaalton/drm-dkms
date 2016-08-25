@@ -1,0 +1,152 @@
+From 7b197392112939356d7296e61934cb861535a649 Mon Sep 17 00:00:00 2001
+From: Timo Aaltonen <timo.aaltonen@canonical.com>
+Date: Wed, 24 Aug 2016 13:53:50 +0300
+Subject: [PATCH] revert u64_to_user_ptr
+
+---
+ drivers/gpu/drm/i915/i915_drv.h            |  5 +++++
+ drivers/gpu/drm/i915/i915_gem.c            | 16 ++++++++--------
+ drivers/gpu/drm/i915/i915_gem_execbuffer.c | 14 +++++++-------
+ 3 files changed, 20 insertions(+), 15 deletions(-)
+
+--- a/drivers/gpu/drm/i915/i915_drv.h
++++ b/drivers/gpu/drm/i915/i915_drv.h
+@@ -3950,6 +3950,11 @@ static inline i915_reg_t i915_vgacntrl_r
+ 		return VGACNTRL;
+ }
+ 
++static inline void __user *to_user_ptr(u64 address)
++{
++       return (void __user *)(uintptr_t)address;
++}
++
+ static inline unsigned long msecs_to_jiffies_timeout(const unsigned int m)
+ {
+ 	unsigned long j = msecs_to_jiffies(m);
+--- a/drivers/gpu/drm/i915/i915_gem.c
++++ b/drivers/gpu/drm/i915/i915_gem.c
+@@ -320,7 +320,7 @@ i915_gem_phys_pwrite(struct drm_i915_gem
+ {
+ 	struct drm_device *dev = obj->base.dev;
+ 	void *vaddr = obj->phys_handle->vaddr + args->offset;
+-	char __user *user_data = u64_to_user_ptr(args->data_ptr);
++	char __user *user_data = to_user_ptr(args->data_ptr);
+ 	int ret = 0;
+ 
+ 	/* We manually control the domain here and pretend that it
+@@ -604,7 +604,7 @@ i915_gem_shmem_pread(struct drm_device *
+ 	int needs_clflush = 0;
+ 	struct sg_page_iter sg_iter;
+ 
+-	user_data = u64_to_user_ptr(args->data_ptr);
++	user_data = to_user_ptr(args->data_ptr);
+ 	remain = args->size;
+ 
+ 	obj_do_bit17_swizzling = i915_gem_object_needs_bit17_swizzle(obj);
+@@ -694,7 +694,7 @@ i915_gem_pread_ioctl(struct drm_device *
+ 		return 0;
+ 
+ 	if (!access_ok(VERIFY_WRITE,
+-		       u64_to_user_ptr(args->data_ptr),
++		       to_user_ptr(args->data_ptr),
+ 		       args->size))
+ 		return -EFAULT;
+ 
+@@ -790,7 +790,7 @@ i915_gem_gtt_pwrite_fast(struct drm_devi
+ 	if (ret)
+ 		goto out_unpin;
+ 
+-	user_data = u64_to_user_ptr(args->data_ptr);
++	user_data = to_user_ptr(args->data_ptr);
+ 	remain = args->size;
+ 
+ 	offset = i915_gem_obj_ggtt_offset(obj) + args->offset;
+@@ -914,7 +914,7 @@ i915_gem_shmem_pwrite(struct drm_device
+ 	int needs_clflush_before = 0;
+ 	struct sg_page_iter sg_iter;
+ 
+-	user_data = u64_to_user_ptr(args->data_ptr);
++	user_data = to_user_ptr(args->data_ptr);
+ 	remain = args->size;
+ 
+ 	obj_do_bit17_swizzling = i915_gem_object_needs_bit17_swizzle(obj);
+@@ -1046,12 +1046,12 @@ i915_gem_pwrite_ioctl(struct drm_device
+ 		return 0;
+ 
+ 	if (!access_ok(VERIFY_READ,
+-		       u64_to_user_ptr(args->data_ptr),
++		       to_user_ptr(args->data_ptr),
+ 		       args->size))
+ 		return -EFAULT;
+ 
+ 	if (likely(!i915.prefault_disable)) {
+-		ret = fault_in_multipages_readable(u64_to_user_ptr(args->data_ptr),
++		ret = fault_in_multipages_readable(to_user_ptr(args->data_ptr),
+ 						   args->size);
+ 		if (ret)
+ 			return -EFAULT;
+--- a/drivers/gpu/drm/i915/i915_gem_execbuffer.c
++++ b/drivers/gpu/drm/i915/i915_gem_execbuffer.c
+@@ -515,7 +515,7 @@ i915_gem_execbuffer_relocate_vma(struct
+ 	struct drm_i915_gem_exec_object2 *entry = vma->exec_entry;
+ 	int remain, ret;
+ 
+-	user_relocs = u64_to_user_ptr(entry->relocs_ptr);
++	user_relocs = to_user_ptr(entry->relocs_ptr);
+ 
+ 	remain = entry->relocation_count;
+ 	while (remain) {
+@@ -867,7 +867,7 @@ i915_gem_execbuffer_relocate_slow(struct
+ 		u64 invalid_offset = (u64)-1;
+ 		int j;
+ 
+-		user_relocs = u64_to_user_ptr(exec[i].relocs_ptr);
++		user_relocs = to_user_ptr(exec[i].relocs_ptr);
+ 
+ 		if (copy_from_user(reloc+total, user_relocs,
+ 				   exec[i].relocation_count * sizeof(*reloc))) {
+@@ -1012,7 +1012,7 @@ validate_exec_list(struct drm_device *de
+ 		invalid_flags |= EXEC_OBJECT_NEEDS_GTT;
+ 
+ 	for (i = 0; i < count; i++) {
+-		char __user *ptr = u64_to_user_ptr(exec[i].relocs_ptr);
++		char __user *ptr = to_user_ptr(exec[i].relocs_ptr);
+ 		int length; /* limited by fault_in_pages_readable() */
+ 
+ 		if (exec[i].flags & invalid_flags)
+@@ -1693,7 +1693,7 @@ i915_gem_execbuffer(struct drm_device *d
+ 		return -ENOMEM;
+ 	}
+ 	ret = copy_from_user(exec_list,
+-			     u64_to_user_ptr(args->buffers_ptr),
++			     to_user_ptr(args->buffers_ptr),
+ 			     sizeof(*exec_list) * args->buffer_count);
+ 	if (ret != 0) {
+ 		DRM_DEBUG("copy %d exec entries failed %d\n",
+@@ -1729,7 +1729,7 @@ i915_gem_execbuffer(struct drm_device *d
+ 	ret = i915_gem_do_execbuffer(dev, data, file, &exec2, exec2_list);
+ 	if (!ret) {
+ 		struct drm_i915_gem_exec_object __user *user_exec_list =
+-			u64_to_user_ptr(args->buffers_ptr);
++			to_user_ptr(args->buffers_ptr);
+ 
+ 		/* Copy the new buffer offsets back to the user's exec list. */
+ 		for (i = 0; i < args->buffer_count; i++) {
+@@ -1781,7 +1781,7 @@ i915_gem_execbuffer2(struct drm_device *
+ 		return -ENOMEM;
+ 	}
+ 	ret = copy_from_user(exec2_list,
+-			     u64_to_user_ptr(args->buffers_ptr),
++			     to_user_ptr(args->buffers_ptr),
+ 			     sizeof(*exec2_list) * args->buffer_count);
+ 	if (ret != 0) {
+ 		DRM_DEBUG("copy %d exec entries failed %d\n",
+@@ -1794,7 +1794,7 @@ i915_gem_execbuffer2(struct drm_device *
+ 	if (!ret) {
+ 		/* Copy the new buffer offsets back to the user's exec list. */
+ 		struct drm_i915_gem_exec_object2 __user *user_exec_list =
+-				   u64_to_user_ptr(args->buffers_ptr);
++				   to_user_ptr(args->buffers_ptr);
+ 		int i;
+ 
+ 		for (i = 0; i < args->buffer_count; i++) {

@@ -1,3 +1,20 @@
 backport.patch
-# -> 4.6
+# -> 4.8
+48-Revert-drm-i915-Defer-probe-if-gmux-is-present-but-i.patch
+48-Revert-drm-i915-Switch-DDC-when-reading-the-EDID.patch
+48-Revert-drm-i915-Add-support-for-mapping-an-object-pa.patch
+48-Revert-drm-i915-make-i915_gem_mmap_ioctl-wait-for-mm.patch
+48-Revert-drm-i915-pwrite-pread-do-not-require-obj-base.patch
+48-Revert-drm-i915-Add-missing-rpm-wakelock-to-GGTT-pre.patch
+48-Revert-drm-i915-Support-for-pread-pwrite-from-to-non.patch
+48-Revert-drm-i915-Use-insert_page-for-pwrite_fast.patch
+48-Revert-drm-i915-shrinker-Hook-up-vmap-allocation-fai.patch
+48-SAUCE-use-get_user_pages-still.patch
+48-Revert-drm-i915-Explicitly-apply-PWM-config-extracte.patch
+48-Revert-drm-edid-Switch-DDC-when-reading-the-EDID.patch
+48-Revert-drm-Pass-the-drm_dp_aux-hw_mutex-to-i2c-for-i.patch
+48-Revert-drm-edid-convert-to-use-match_string-helper.patch
+48-revert-u64-to-user-ptr.patch
+
 rename-to-i915-bpo.diff
+use-bpo-io-mapping.diff

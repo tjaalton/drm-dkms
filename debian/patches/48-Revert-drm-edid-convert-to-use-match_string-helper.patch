@@ -1,6 +1,6 @@
-From 69f018a9f0c92f3929f91708623490d99791da3d Mon Sep 17 00:00:00 2001
+From c70bb3e4859d18a48fb75e364bcb9f9298851a38 Mon Sep 17 00:00:00 2001
 From: Timo Aaltonen <timo.aaltonen@canonical.com>
-Date: Tue, 12 Apr 2016 15:55:48 +0300
+Date: Wed, 24 Aug 2016 19:18:23 +0300
 Subject: [PATCH] Revert "drm/edid: convert to use match_string() helper"
 
 This reverts commit 7a5cf52dbbd67979ce9805311492e606abee0f6a.
@@ -9,7 +9,7 @@ This reverts commit 7a5cf52dbbd67979ce9805311492e606abee0f6a.
  1 file changed, 11 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/gpu/drm/drm_edid_load.c b/drivers/gpu/drm/drm_edid_load.c
-index 9a401ae..698b8c3 100644
+index 622f788..86f4ad9 100644
 --- a/drivers/gpu/drm/drm_edid_load.c
 +++ b/drivers/gpu/drm/drm_edid_load.c
 @@ -170,11 +170,16 @@ static void *edid_load(struct drm_connector *connector, const char *name,

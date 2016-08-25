@@ -1,0 +1,30 @@
+From 51ce31b1f75763a36801ad2a1db46bdb438fc5c1 Mon Sep 17 00:00:00 2001
+From: Timo Aaltonen <timo.aaltonen@canonical.com>
+Date: Tue, 10 May 2016 15:16:33 +0300
+Subject: [PATCH] SAUCE: use get_user_pages still
+
+revert some of
+
+commit 1e9877902dc7e11d2be038371c6fbf2dfcd469d7
+Author: Dave Hansen <dave.hansen@linux.intel.com>
+Date:   Fri Feb 12 13:01:54 2016 -0800
+---
+ drivers/gpu/drm/i915/i915_gem_userptr.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/i915/i915_gem_userptr.c b/drivers/gpu/drm/i915/i915_gem_userptr.c
+index 2314c88..75e1832 100644
+--- a/drivers/gpu/drm/i915/i915_gem_userptr.c
++++ b/drivers/gpu/drm/i915/i915_gem_userptr.c
+@@ -543,7 +543,7 @@ __i915_gem_userptr_get_pages_worker(struct work_struct *_work)
+ 		if (atomic_inc_not_zero(&mm->mm_users)) {
+ 			down_read(&mm->mmap_sem);
+ 			while (pinned < npages) {
+-				ret = get_user_pages_remote
++				ret = get_user_pages
+ 					(work->task, mm,
+ 					 obj->userptr.ptr + pinned * PAGE_SIZE,
+ 					 npages - pinned,
+-- 
+2.7.4
+
