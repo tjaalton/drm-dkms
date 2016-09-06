@@ -1,6 +1,7 @@
 i915-4.8-4.4 (4.8~rc5-1) UNRELEASED; urgency=medium
 
   * Update to v4.8-rc5.
+  * conf: Use -j4, APL can handle it.
 
  -- Timo Aaltonen <tjaalton@debian.org>  Tue, 06 Sep 2016 09:37:35 +0300
 
