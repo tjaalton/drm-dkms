@@ -1,0 +1,29 @@
+From e6e66dd75099a177d22544d037c07210b8b77abf Mon Sep 17 00:00:00 2001
+From: Timo Aaltonen <timo.aaltonen@canonical.com>
+Date: Fri, 28 Oct 2016 13:10:24 +0300
+Subject: [PATCH] Revert "drm/radeon: make radeon_mn_get wait for mmap_sem
+ killable"
+
+This reverts commit 2267c2999b49682ae4801dab3b1ac96584f57da0.
+---
+ drivers/gpu/drm/radeon/radeon_mn.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/drivers/gpu/drm/radeon/radeon_mn.c b/drivers/gpu/drm/radeon/radeon_mn.c
+index 896f2cf..eef006c 100644
+--- a/drivers/gpu/drm/radeon/radeon_mn.c
++++ b/drivers/gpu/drm/radeon/radeon_mn.c
+@@ -186,9 +186,7 @@ static struct radeon_mn *radeon_mn_get(struct radeon_device *rdev)
+ 	struct radeon_mn *rmn;
+ 	int r;
+ 
+-	if (down_write_killable(&mm->mmap_sem))
+-		return ERR_PTR(-EINTR);
+-
++	down_write(&mm->mmap_sem);
+ 	mutex_lock(&rdev->mn_lock);
+ 
+ 	hash_for_each_possible(rdev->mn_hash, rmn, node, (unsigned long)mm)
+-- 
+2.7.4
+

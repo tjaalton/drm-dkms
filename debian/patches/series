@@ -15,6 +15,10 @@ backport.patch
 48-Revert-drm-Pass-the-drm_dp_aux-hw_mutex-to-i2c-for-i.patch
 48-Revert-drm-edid-convert-to-use-match_string-helper.patch
 48-revert-u64-to-user-ptr.patch
+48-radeon-revert-switcheroo-changes.diff
+48-radeon-use-old-get_user_pages.diff
+48-Revert-drm-radeon-make-radeon_mn_get-wait-for-mmap_s.patch
+48-radeon-revert-ttm-api-change.patch
 
 rename-to-i915-bpo.diff
 use-bpo-io-mapping.diff

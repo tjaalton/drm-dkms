@@ -139,6 +139,7 @@ export CPATH
 
 # make sure our dkms includes override local ones:
 LINUXINCLUDE := -I$(INC_INCPATH) -I$(INC_INCPATH)/drm -I$(INC_INCPATH)/uapi $(LINUXINCLUDE)
+LINUXINCLUDE += -I$(KBUILD_EXTMOD)/drivers/gpu/drm/amd/include
 ccflags-y    := -Iinclude/drm
 
 # construct the object file lists to match the in-tree Makefiles:
@@ -175,6 +176,7 @@ obj-$(CONFIG_DRM)                += drm.o
 obj-$(CONFIG_DRM_KMS_HELPER)     += drm_kms_helper.o
 
 obj-m := $(I9_MODULES)
+obj-m += drivers/gpu/drm/radeon/
 
 CFLAGS_i915_trace_points.o := -I$(CPATH)
 CFLAGS_drm_trace_points.o  := -I$(KBUILD_EXTMOD)/drivers/gpu/drm
