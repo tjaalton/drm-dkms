@@ -22,3 +22,4 @@ backport.patch
 
 rename-to-i915-bpo.diff
 use-bpo-io-mapping.diff
+SAUCE-i915_bpo-Add-i915_bpo_-calls-for-i915.patch
