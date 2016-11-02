@@ -4,7 +4,6 @@ i915-4.8-4.4 (4.8.5-2) UNRELEASED; urgency=medium
   * Makefile: Fix a typo preventing build of drm_dp_aux_dev.
   * intel_ips: Use i915_bpo calls like on the main xenial kernel.
   * Makefile: Build i915 using drm/i915/Makefile.
-  * dkms.conf.in: -j4 is racy, drop it.
   * Makefile: Build drm using drm/Makefile.
 
  -- Timo Aaltonen <tjaalton@debian.org>  Wed, 02 Nov 2016 14:35:01 +0200
