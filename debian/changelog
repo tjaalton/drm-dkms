@@ -2,6 +2,7 @@ i915-4.8-4.4 (4.8.5-2) UNRELEASED; urgency=medium
 
   * Add more reverts to silence i915 build warnings.
   * Makefile: Fix a typo preventing build of drm_dp_aux_dev.
+  * intel_ips: Use i915_bpo calls like on the main xenial kernel.
 
  -- Timo Aaltonen <tjaalton@debian.org>  Wed, 02 Nov 2016 14:35:01 +0200
 

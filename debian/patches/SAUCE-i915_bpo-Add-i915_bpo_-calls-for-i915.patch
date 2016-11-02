@@ -141,3 +141,106 @@ used by intel_ips driver
  
  /**
   * Tells the intel_ips driver that the i915 driver is now loaded, if
+--- a/drivers/platform/x86/intel_ips.c
++++ b/drivers/platform/x86/intel_ips.c
+@@ -74,6 +74,7 @@
+ #include <linux/timer.h>
+ #include <linux/dmi.h>
+ #include <drm/i915_drm.h>
++#include <drm/i915_drm_bpo.h>
+ #include <asm/msr.h>
+ #include <asm/processor.h>
+ #include "intel_ips.h"
+@@ -251,6 +252,9 @@
+ static const int IPS_ADJUST_PERIOD = 5000; /* ms */
+ static bool late_i915_load = false;
+ 
++int i915_bpo_enabled = 0;
++EXPORT_SYMBOL(i915_bpo_enabled);
++
+ /* For initial average collection */
+ static const int IPS_SAMPLE_PERIOD = 200; /* ms */
+ static const int IPS_SAMPLE_WINDOW = 5000; /* 5s moving window of samples */
+@@ -1421,8 +1425,43 @@ out:
+  * enable graphics turbo, otherwise we must disable it to avoid exceeding
+  * thermal and power limits in the MCP.
+  */
++static bool ips_get_i915_bpo_syms(struct ips_driver *ips)
++{
++       ips->read_mch_val = symbol_get(i915_bpo_read_mch_val);
++       if (!ips->read_mch_val)
++               goto out_err;
++       ips->gpu_raise = symbol_get(i915_bpo_gpu_raise);
++       if (!ips->gpu_raise)
++               goto out_put_mch;
++       ips->gpu_lower = symbol_get(i915_bpo_gpu_lower);
++       if (!ips->gpu_lower)
++               goto out_put_raise;
++       ips->gpu_busy = symbol_get(i915_bpo_gpu_busy);
++       if (!ips->gpu_busy)
++               goto out_put_lower;
++       ips->gpu_turbo_disable = symbol_get(i915_bpo_gpu_turbo_disable);
++       if (!ips->gpu_turbo_disable)
++               goto out_put_busy;
++
++       return true;
++
++out_put_busy:
++       symbol_put(i915_bpo_gpu_busy);
++out_put_lower:
++       symbol_put(i915_bpo_gpu_lower);
++out_put_raise:
++       symbol_put(i915_bpo_gpu_raise);
++out_put_mch:
++       symbol_put(i915_bpo_read_mch_val);
++out_err:
++       return false;
++}
++
+ static bool ips_get_i915_syms(struct ips_driver *ips)
+ {
++       if (ips_get_i915_bpo_syms(ips) != false)
++               return true;
++
+ 	ips->read_mch_val = symbol_get(i915_read_mch_val);
+ 	if (!ips->read_mch_val)
+ 		goto out_err;
+--- /dev/null
++++ b/include/drm/i915_drm_bpo.h
+@@ -0,0 +1,36 @@
++/*
++ * Copyright 2003 Tungsten Graphics, Inc., Cedar Park, Texas.
++ * All Rights Reserved.
++ *
++ * Permission is hereby granted, free of charge, to any person obtaining a
++ * copy of this software and associated documentation files (the
++ * "Software"), to deal in the Software without restriction, including
++ * without limitation the rights to use, copy, modify, merge, publish,
++ * distribute, sub license, and/or sell copies of the Software, and to
++ * permit persons to whom the Software is furnished to do so, subject to
++ * the following conditions:
++ *
++ * The above copyright notice and this permission notice (including the
++ * next paragraph) shall be included in all copies or substantial portions
++ * of the Software.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
++ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
++ * IN NO EVENT SHALL TUNGSTEN GRAPHICS AND/OR ITS SUPPLIERS BE LIABLE FOR
++ * ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
++ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
++ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
++ *
++ */
++#ifndef _I915_DRM_BPO_H_
++#define _I915_DRM_BPO_H_
++
++/* For use by IPS driver */
++extern unsigned long i915_bpo_read_mch_val(void);
++extern bool i915_bpo_gpu_raise(void);
++extern bool i915_bpo_gpu_lower(void);
++extern bool i915_bpo_gpu_busy(void);
++extern bool i915_bpo_gpu_turbo_disable(void);
++
++#endif                         /* _I915_DRM_BPO_H_ */
