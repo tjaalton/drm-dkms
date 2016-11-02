@@ -147,11 +147,11 @@ drm_kms_helper-y := \
     $(patsubst %,$(DRMD)%.o, $(DRM_KMS_HELPER_ITEMS))
 drm_kms_helper-$(CONFIG_DRM_LOAD_EDID_FIRMWARE) += \
     $(patsubst %,$(DRMD)%.o,drm_edid_load)
-drm_kms_helper-$(CONFIG_DRM_KMS_FB_HELPER)     += \
+drm_kms_helper-$(CONFIG_DRM_KMS_FB_HELPER)      += \
     $(patsubst %,$(DRMD)%.o,drm_fb_helper)
 drm_kms_helper-$(CONFIG_DRM_KMS_CMA_HELPER)     += \
     $(patsubst %,$(DRMD)%.o,drm_fb_cma_helper)
-drm_kms_helper-y)                               += \
+drm_kms_helper-y                                += \
     $(patsubst %,$(DRMD)%.o,drm_dp_aux_dev)
 
 drm-y       := $(patsubst %,$(DRMD)%.o,      $(DRM_ITEMS))
