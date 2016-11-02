@@ -1,0 +1,54 @@
+From a77e9aa46f6f9c412716725d9ce35fdc270f364b Mon Sep 17 00:00:00 2001
+From: Timo Aaltonen <timo.aaltonen@canonical.com>
+Date: Wed, 2 Nov 2016 14:28:41 +0200
+Subject: [PATCH] Revert "dma-buf, drm, ion: Propagate error code from
+ dma_buf_start_cpu_access()"
+
+This reverts commit 18b862dcd57a3e23e34c8cd1e939f68548c1209a.
+---
+ drivers/dma-buf/dma-buf.c                 | 17 ++++++-----------
+ drivers/gpu/drm/i915/i915_gem_dmabuf.c    | 15 ++++++++++-----
+ drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c |  5 ++---
+ drivers/gpu/drm/udl/udl_fb.c              |  4 ++--
+ drivers/staging/android/ion/ion.c         |  6 ++----
+ include/linux/dma-buf.h                   |  6 +++---
+ 6 files changed, 25 insertions(+), 28 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/i915_gem_dmabuf.c b/drivers/gpu/drm/i915/i915_gem_dmabuf.c
+index 80bbe43..4e60643 100644
+--- a/drivers/gpu/drm/i915/i915_gem_dmabuf.c
++++ b/drivers/gpu/drm/i915/i915_gem_dmabuf.c
+@@ -187,20 +187,25 @@ static int i915_gem_begin_cpu_access(struct dma_buf *dma_buf, enum dma_data_dire
+ 	return ret;
+ }
+ 
+-static int i915_gem_end_cpu_access(struct dma_buf *dma_buf, enum dma_data_direction direction)
++static void i915_gem_end_cpu_access(struct dma_buf *dma_buf, enum dma_data_direction direction)
+ {
+ 	struct drm_i915_gem_object *obj = dma_buf_to_obj(dma_buf);
+ 	struct drm_device *dev = obj->base.dev;
++	struct drm_i915_private *dev_priv = to_i915(dev);
++	bool was_interruptible;
+ 	int ret;
+ 
+-	ret = i915_mutex_lock_interruptible(dev);
+-	if (ret)
+-		return ret;
++	mutex_lock(&dev->struct_mutex);
++	was_interruptible = dev_priv->mm.interruptible;
++	dev_priv->mm.interruptible = false;
+ 
+ 	ret = i915_gem_object_set_to_gtt_domain(obj, false);
++
++	dev_priv->mm.interruptible = was_interruptible;
+ 	mutex_unlock(&dev->struct_mutex);
+ 
+-	return ret;
++	if (unlikely(ret))
++		DRM_ERROR("unable to flush buffer following CPU access; rendering may be corrupt\n");
+ }
+ 
+ static const struct dma_buf_ops i915_dmabuf_ops =  {
+-- 
+2.7.4
+
