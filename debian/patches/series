@@ -18,7 +18,7 @@ backport.patch
 48-radeon-revert-switcheroo-changes.diff
 48-radeon-use-old-get_user_pages.diff
 48-Revert-drm-radeon-make-radeon_mn_get-wait-for-mmap_s.patch
-48-radeon-revert-ttm-api-change.patch
+#48-radeon-revert-ttm-api-change.patch
 48-revert-dma-buf-remove-range-based-flush.diff
 48-Revert-dma-buf-drm-ion-Propagate-error-code-from-dma.patch
 48-Revert-drm-i915-Implement-end_cpu_access.patch
@@ -29,3 +29,4 @@ SAUCE-i915_bpo-Add-i915_bpo_-calls-for-i915.patch
 0001-drm-radeon-si_dpm-workaround-for-SI-kickers.patch
 0002-drm-radeon-si-dpm-fix-phase-shedding-setup.patch
 drm-trim-build.diff
+48-ttm-revert-conversion-to-pfn-t.diff
