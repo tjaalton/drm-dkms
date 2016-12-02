@@ -26,7 +26,5 @@ backport.patch
 rename-to-i915-bpo.diff
 use-bpo-io-mapping.diff
 SAUCE-i915_bpo-Add-i915_bpo_-calls-for-i915.patch
-0001-drm-radeon-si_dpm-workaround-for-SI-kickers.patch
-0002-drm-radeon-si-dpm-fix-phase-shedding-setup.patch
 drm-trim-build.diff
 48-ttm-revert-conversion-to-pfn-t.diff

@@ -1,3 +1,10 @@
+i915-4.8-4.4 (4.8.12-1) UNRELEASED; urgency=medium
+
+  * Update to v4.8.12.
+  * Drop radeon patches included upstream.
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Fri, 02 Dec 2016 13:05:48 +0200
+
 i915-4.8-4.4 (4.8.5-3) xenial; urgency=medium
 
   * Add ttm module, adjust build.
