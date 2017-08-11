@@ -1,6 +1,6 @@
-i915-4.8-4.4 (4.8.12-1) UNRELEASED; urgency=medium
+i915-4.8-4.4 (4.8.17-1) UNRELEASED; urgency=medium
 
-  * Update to v4.8.12.
+  * Update to v4.8.17.
   * Drop radeon patches included upstream.
   * Add 5917 to modaliases.
 
