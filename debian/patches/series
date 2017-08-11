@@ -28,3 +28,5 @@ use-bpo-io-mapping.diff
 SAUCE-i915_bpo-Add-i915_bpo_-calls-for-i915.patch
 drm-trim-build.diff
 48-ttm-revert-conversion-to-pfn-t.diff
+48-Revert-drm-radeon-fix-check-for-port-PM-availability.patch
+48-Revert-drm-radeon-fix-power-state-when-port-pm-is-un.patch
