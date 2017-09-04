@@ -2,8 +2,8 @@
 
 set -e
 
-package=i915-4.8-4.4-dkms
-name=i915-4.8-4.4
+package=i915-4.9-4.4-dkms
+name=i915-4.9-4.4
 
 version=$(dpkg-query -W -f='${Version}' "$package" | rev | \
           cut -d- -f2- | rev | cut -d':' -f2 | tr -d "\n");

@@ -1,3 +1,9 @@
+i915-4.9-4.4 (4.9.41-1) UNRELEASED; urgency=medium
+
+  * New version v4.9.41.
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Mon, 04 Sep 2017 10:49:39 +0300
+
 i915-4.8-4.4 (4.8.17-2) xenial; urgency=medium
 
   * Revert two unneeded commits from radeon to fix build.

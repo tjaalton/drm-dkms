@@ -3,7 +3,7 @@
 set -e
 
 _module=i915;
-_k_from=4.8;
+_k_from=4.9;
 _k_to=4.4;
 
 package=$_module-$_k_from-$_k_to-dkms;
