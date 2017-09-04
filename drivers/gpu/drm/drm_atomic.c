@@ -840,8 +840,9 @@ static int drm_atomic_plane_check(struct drm_plane *plane,
 	/* Check whether this plane supports the fb pixel format. */
 	ret = drm_plane_check_pixel_format(plane, state->fb->pixel_format);
 	if (ret) {
-		DRM_DEBUG_ATOMIC("Invalid pixel format %s\n",
-				 drm_get_format_name(state->fb->pixel_format));
+		char *format_name = drm_get_format_name(state->fb->pixel_format);
+		DRM_DEBUG_ATOMIC("Invalid pixel format %s\n", format_name);
+		kfree(format_name);
 		return ret;
 	}
 
@@ -1693,7 +1694,7 @@ retry:
 				goto out;
 			}
 
-			prop = drm_property_find(dev, prop_id);
+			prop = drm_mode_obj_find_prop_id(obj, prop_id);
 			if (!prop) {
 				drm_mode_object_unreference(obj);
 				ret = -ENOENT;
@@ -1758,16 +1759,16 @@ out:
 
 	if (ret && arg->flags & DRM_MODE_PAGE_FLIP_EVENT) {
 		/*
-		 * TEST_ONLY and PAGE_FLIP_EVENT are mutually exclusive,
-		 * if they weren't, this code should be called on success
-		 * for TEST_ONLY too.
+		 * Free the allocated event. drm_atomic_helper_setup_commit
+		 * can allocate an event too, so only free it if it's ours
+		 * to prevent a double free in drm_atomic_state_clear.
 		 */
-
 		for_each_crtc_in_state(state, crtc, crtc_state, i) {
-			if (!crtc_state->event)
-				continue;
-
-			drm_event_cancel_free(dev, &crtc_state->event->base);
+			struct drm_pending_vblank_event *event = crtc_state->event;
+			if (event && (event->base.fence || event->base.file_priv)) {
+				drm_event_cancel_free(dev, &event->base);
+				crtc_state->event = NULL;
+			}
 		}
 	}
 

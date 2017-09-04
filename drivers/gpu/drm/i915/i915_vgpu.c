@@ -60,8 +60,8 @@
  */
 void i915_check_vgpu(struct drm_i915_private *dev_priv)
 {
-	uint64_t magic;
-	uint32_t version;
+	u64 magic;
+	u16 version_major;
 
 	BUILD_BUG_ON(sizeof(struct vgt_if) != VGT_PVINFO_SIZE);
 
@@ -69,10 +69,8 @@ void i915_check_vgpu(struct drm_i915_private *dev_priv)
 	if (magic != VGT_MAGIC)
 		return;
 
-	version = INTEL_VGT_IF_VERSION_ENCODE(
-		__raw_i915_read16(dev_priv, vgtif_reg(version_major)),
-		__raw_i915_read16(dev_priv, vgtif_reg(version_minor)));
-	if (version != INTEL_VGT_IF_VERSION) {
+	version_major = __raw_i915_read16(dev_priv, vgtif_reg(version_major));
+	if (version_major < VGT_VERSION_MAJOR) {
 		DRM_INFO("VGT interface version mismatch!\n");
 		return;
 	}
@@ -94,6 +92,7 @@ static struct _balloon_info_ bl_info;
 
 /**
  * intel_vgt_deballoon - deballoon reserved graphics address trunks
+ * @dev_priv: i915 device private data
  *
  * This function is called to deallocate the ballooned-out graphic memory, when
  * driver is unloaded or when ballooning fails.
@@ -135,7 +134,7 @@ static int vgt_balloon_space(struct drm_mm *mm,
 
 /**
  * intel_vgt_balloon - balloon out reserved graphics address trunks
- * @dev: drm device
+ * @dev_priv: i915 device private data
  *
  * This function is called at the initialization stage, to balloon out the
  * graphic address space allocated to other vGPUs, by marking these spaces as
@@ -152,27 +151,27 @@ static int vgt_balloon_space(struct drm_mm *mm,
  * host point of view, the graphic address space is partitioned by multiple
  * vGPUs in different VMs. ::
  *
- *                        vGPU1 view         Host view
- *             0 ------> +-----------+     +-----------+
- *               ^       |###########|     |   vGPU3   |
- *               |       |###########|     +-----------+
- *               |       |###########|     |   vGPU2   |
- *               |       +-----------+     +-----------+
- *        mappable GM    | available | ==> |   vGPU1   |
- *               |       +-----------+     +-----------+
- *               |       |###########|     |           |
- *               v       |###########|     |   Host    |
- *               +=======+===========+     +===========+
- *               ^       |###########|     |   vGPU3   |
- *               |       |###########|     +-----------+
- *               |       |###########|     |   vGPU2   |
- *               |       +-----------+     +-----------+
- *      unmappable GM    | available | ==> |   vGPU1   |
- *               |       +-----------+     +-----------+
- *               |       |###########|     |           |
- *               |       |###########|     |   Host    |
- *               v       |###########|     |           |
- * total GM size ------> +-----------+     +-----------+
+ *                         vGPU1 view         Host view
+ *              0 ------> +-----------+     +-----------+
+ *                ^       |###########|     |   vGPU3   |
+ *                |       |###########|     +-----------+
+ *                |       |###########|     |   vGPU2   |
+ *                |       +-----------+     +-----------+
+ *         mappable GM    | available | ==> |   vGPU1   |
+ *                |       +-----------+     +-----------+
+ *                |       |###########|     |           |
+ *                v       |###########|     |   Host    |
+ *                +=======+===========+     +===========+
+ *                ^       |###########|     |   vGPU3   |
+ *                |       |###########|     +-----------+
+ *                |       |###########|     |   vGPU2   |
+ *                |       +-----------+     +-----------+
+ *       unmappable GM    | available | ==> |   vGPU1   |
+ *                |       +-----------+     +-----------+
+ *                |       |###########|     |           |
+ *                |       |###########|     |   Host    |
+ *                v       |###########|     |           |
+ *  total GM size ------> +-----------+     +-----------+
  *
  * Returns:
  * zero on success, non-zero if configuration invalid or ballooning failed

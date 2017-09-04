@@ -136,6 +136,10 @@ static struct radeon_px_quirk radeon_px_quirk_list[] = {
 	 * https://bugzilla.kernel.org/show_bug.cgi?id=51381
 	 */
 	{ PCI_VENDOR_ID_ATI, 0x6840, 0x1043, 0x2122, RADEON_PX_QUIRK_DISABLE_PX },
+	/* Asus K53TK laptop with AMD A6-3420M APU and Radeon 7670m GPU
+	 * https://bugs.freedesktop.org/show_bug.cgi?id=101491
+	 */
+	{ PCI_VENDOR_ID_ATI, 0x6741, 0x1043, 0x2122, RADEON_PX_QUIRK_DISABLE_PX },
 	/* macbook pro 8.2 */
 	{ PCI_VENDOR_ID_ATI, 0x6741, PCI_VENDOR_ID_APPLE, 0x00e2, RADEON_PX_QUIRK_LONG_WAKEUP },
 	{ 0, 0, 0, 0, 0 },
@@ -652,7 +656,7 @@ void radeon_gtt_location(struct radeon_device *rdev, struct radeon_mc *mc)
  * Used at driver startup.
  * Returns true if virtual or false if not.
  */
-static bool radeon_device_is_virtual(void)
+bool radeon_device_is_virtual(void)
 {
 #ifdef CONFIG_X86
 	return boot_cpu_has(X86_FEATURE_HYPERVISOR);
@@ -1970,14 +1974,3 @@ static void radeon_debugfs_remove_files(struct radeon_device *rdev)
 	}
 #endif
 }
-
-#if defined(CONFIG_DEBUG_FS)
-int radeon_debugfs_init(struct drm_minor *minor)
-{
-	return 0;
-}
-
-void radeon_debugfs_cleanup(struct drm_minor *minor)
-{
-}
-#endif
