@@ -1,7 +1,7 @@
-From dccb0e93f8d07f57a672c4e28d137ca9be40e10d Mon Sep 17 00:00:00 2001
+From 38d7c6b46caf266e6059f03f55f637ed9ffc967f Mon Sep 17 00:00:00 2001
 From: Timo Aaltonen <timo.aaltonen@canonical.com>
-Date: Mon, 22 Feb 2016 19:24:37 +0200
-Subject: [PATCH 1/2] Revert "drm/i915: Defer probe if gmux is present but its
+Date: Mon, 11 Sep 2017 13:17:54 +0300
+Subject: [PATCH] Revert "drm/i915: Defer probe if gmux is present but its
  driver isn't"
 
 This reverts commit 704ab614ec1201138032003c03113a81526638ab.
@@ -10,7 +10,7 @@ This reverts commit 704ab614ec1201138032003c03113a81526638ab.
  1 file changed, 9 deletions(-)
 
 diff --git a/drivers/gpu/drm/i915/i915_pci.c b/drivers/gpu/drm/i915/i915_pci.c
-index 949c016..815fa0e 100644
+index 9e94886..2fe9d26 100644
 --- a/drivers/gpu/drm/i915/i915_pci.c
 +++ b/drivers/gpu/drm/i915/i915_pci.c
 @@ -23,8 +23,6 @@
@@ -22,7 +22,7 @@ index 949c016..815fa0e 100644
  
  #include "i915_drv.h"
  
-@@ -430,13 +428,6 @@ static int i915_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
+@@ -451,13 +449,6 @@ static int i915_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
  	if (PCI_FUNC(pdev->devfn))
  		return -ENODEV;
  

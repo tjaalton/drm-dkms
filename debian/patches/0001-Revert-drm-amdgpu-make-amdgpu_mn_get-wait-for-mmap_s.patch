@@ -1,0 +1,30 @@
+From 2a36783d6935e86d11d8236d0783c6e332948d5a Mon Sep 17 00:00:00 2001
+From: Timo Aaltonen <timo.aaltonen@canonical.com>
+Date: Mon, 11 Sep 2017 15:48:26 +0300
+Subject: [PATCH] Revert "drm/amdgpu: make amdgpu_mn_get wait for mmap_sem
+ killable"
+
+This reverts commit b5637051f1ed48f68370234e879d40d8dd4ab087.
+---
+ drivers/gpu/drm/amd/amdgpu/amdgpu_mn.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_mn.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_mn.c
+index 32fa7b7..9f4a45c 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_mn.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_mn.c
+@@ -232,10 +232,7 @@ static struct amdgpu_mn *amdgpu_mn_get(struct amdgpu_device *adev)
+ 	int r;
+ 
+ 	mutex_lock(&adev->mn_lock);
+-	if (down_write_killable(&mm->mmap_sem)) {
+-		mutex_unlock(&adev->mn_lock);
+-		return ERR_PTR(-EINTR);
+-	}
++	down_write(&mm->mmap_sem);
+ 
+ 	hash_for_each_possible(adev->mn_hash, rmn, node, (unsigned long)mm)
+ 		if (rmn->mm == mm)
+-- 
+2.7.4
+

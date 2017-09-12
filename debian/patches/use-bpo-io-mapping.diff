@@ -11,7 +11,7 @@
  
 --- a/drivers/gpu/drm/i915/i915_gem_gtt.c
 +++ b/drivers/gpu/drm/i915/i915_gem_gtt.c
-@@ -3626,7 +3626,7 @@ void __iomem *i915_vma_pin_iomap(struct
+@@ -3681,7 +3681,7 @@ void __iomem *i915_vma_pin_iomap(struct
  
  	ptr = vma->iomap;
  	if (ptr == NULL) {

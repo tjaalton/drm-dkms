@@ -1,0 +1,60 @@
+From b54799ff936201dd3ac095b7a09b203201ace5ea Mon Sep 17 00:00:00 2001
+From: Timo Aaltonen <timo.aaltonen@canonical.com>
+Date: Mon, 11 Sep 2017 15:06:54 +0300
+Subject: [PATCH] Revert "dma-buf/fence: make fence context 64 bit v2"
+
+This reverts commit 76bf0db5543976ef50362db7071da367cb118532.
+---
+ drivers/dma-buf/fence.c                 |  8 ++++----
+ drivers/gpu/drm/amd/amdgpu/amdgpu.h     |  2 +-
+ drivers/gpu/drm/amd/amdgpu/amdgpu_sa.c  |  2 +-
+ drivers/gpu/drm/etnaviv/etnaviv_gpu.h   |  2 +-
+ drivers/gpu/drm/nouveau/nouveau_fence.h |  3 +--
+ drivers/gpu/drm/qxl/qxl_release.c       |  2 +-
+ drivers/gpu/drm/radeon/radeon.h         |  2 +-
+ drivers/gpu/drm/vmwgfx/vmwgfx_fence.c   |  2 +-
+ include/linux/fence.h                   | 13 ++++++-------
+ 9 files changed, 17 insertions(+), 19 deletions(-)
+
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu.h b/drivers/gpu/drm/amd/amdgpu/amdgpu.h
+index 05c2850..1a7b222 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu.h
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu.h
+@@ -2063,7 +2063,7 @@ struct amdgpu_device {
+ 	struct amdgpu_irq_src		hpd_irq;
+ 
+ 	/* rings */
+-	u64				fence_context;
++	unsigned			fence_context;
+ 	unsigned			num_rings;
+ 	struct amdgpu_ring		*rings[AMDGPU_MAX_RINGS];
+ 	bool				ib_pool_ready;
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_sa.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_sa.c
+index d8af37a..48618ee 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_sa.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_sa.c
+@@ -428,7 +428,7 @@ void amdgpu_sa_bo_dump_debug_info(struct amdgpu_sa_manager *sa_manager,
+ 			   soffset, eoffset, eoffset - soffset);
+ 
+ 		if (i->fence)
+-			seq_printf(m, " protected by 0x%08x on context %llu",
++			seq_printf(m, " protected by 0x%08x on context %d",
+ 				   i->fence->seqno, i->fence->context);
+ 
+ 		seq_printf(m, "\n");
+diff --git a/drivers/gpu/drm/radeon/radeon.h b/drivers/gpu/drm/radeon/radeon.h
+index 1b0dcad..9c6cb60 100644
+--- a/drivers/gpu/drm/radeon/radeon.h
++++ b/drivers/gpu/drm/radeon/radeon.h
+@@ -2387,7 +2387,7 @@ struct radeon_device {
+ 	struct radeon_mman		mman;
+ 	struct radeon_fence_driver	fence_drv[RADEON_NUM_RINGS];
+ 	wait_queue_head_t		fence_queue;
+-	u64				fence_context;
++	unsigned			fence_context;
+ 	struct mutex			ring_lock;
+ 	struct radeon_ring		ring[RADEON_NUM_RINGS];
+ 	bool				ib_pool_ready;
+-- 
+2.7.4
+

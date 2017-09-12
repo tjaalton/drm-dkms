@@ -20,7 +20,7 @@
   *
 --- a/drivers/gpu/drm/i915/i915_gem.c
 +++ b/drivers/gpu/drm/i915/i915_gem.c
-@@ -38,6 +38,7 @@
+@@ -41,6 +41,7 @@
  #include <linux/swap.h>
  #include <linux/pci.h>
  #include <linux/dma-buf.h>
@@ -67,15 +67,26 @@
  #include "intel_drv.h"
 +#include <backport.h>
  
- /**
-  * DOC: Global GTT views
+ #define I915_GFP_DMA (GFP_KERNEL | __GFP_HIGHMEM)
+ 
 --- a/drivers/gpu/drm/i915/intel_overlay.c
 +++ b/drivers/gpu/drm/i915/intel_overlay.c
-@@ -30,6 +30,7 @@
- #include "i915_drv.h"
+@@ -31,6 +31,7 @@
  #include "i915_reg.h"
  #include "intel_drv.h"
+ #include "intel_frontbuffer.h"
 +#include <backport.h>
  
  /* Limits for overlay size. According to intel doc, the real limits are:
   * Y width: 4095, UV width (planar): 2047, Y height: 2047,
+--- a/include/drm/drm_fourcc.h
++++ b/include/drm/drm_fourcc.h
+@@ -24,6 +24,8 @@
+ 
+ #include <linux/types.h>
+ #include <uapi/drm/drm_fourcc.h>
++#include <backport.h>
++
+ 
+ uint32_t drm_mode_legacy_fb_format(uint32_t bpp, uint32_t depth);
+ void drm_fb_get_bpp_depth(uint32_t format, unsigned int *depth, int *bpp);

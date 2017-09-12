@@ -1,13 +1,13 @@
 --- a/drivers/gpu/drm/i915/i915_drv.h
 +++ b/drivers/gpu/drm/i915/i915_drv.h
-@@ -67,7 +67,7 @@
+@@ -68,7 +68,7 @@
  /* General customization:
   */
  
 -#define DRIVER_NAME		"i915"
 +#define DRIVER_NAME		"i915_bpo"
  #define DRIVER_DESC		"Intel Graphics"
- #define DRIVER_DATE		"20160711"
+ #define DRIVER_DATE		"20160919"
  
 --- a/drivers/gpu/drm/i915/Kconfig
 +++ b/drivers/gpu/drm/i915/Kconfig
@@ -37,16 +37,16 @@
  	select MMU_NOTIFIER
 --- a/drivers/gpu/drm/i915/Makefile
 +++ b/drivers/gpu/drm/i915/Makefile
-@@ -7,7 +7,7 @@ subdir-ccflags-$(CONFIG_DRM_I915_WERROR)
+@@ -9,7 +9,7 @@ subdir-ccflags-y += \
  # Please keep these build lists sorted!
  
  # core driver code
 -i915-y := i915_drv.o \
 +i915_bpo-y := i915_drv.o \
  	  i915_irq.o \
+ 	  i915_memcpy.o \
  	  i915_params.o \
- 	  i915_pci.o \
-@@ -18,11 +18,11 @@ i915-y := i915_drv.o \
+@@ -22,11 +22,11 @@ i915-y := i915_drv.o \
  	  intel_pm.o \
  	  intel_runtime_pm.o
  
@@ -60,8 +60,8 @@
 +i915_bpo-y += i915_cmd_parser.o \
  	  i915_gem_batch_pool.o \
  	  i915_gem_context.o \
- 	  i915_gem_debug.o \
-@@ -46,17 +46,17 @@ i915-y += i915_cmd_parser.o \
+ 	  i915_gem_dmabuf.o \
+@@ -51,17 +51,17 @@ i915-y += i915_cmd_parser.o \
  	  intel_uncore.o
  
  # general-purpose microcontroller (GuC) support
@@ -82,7 +82,7 @@
  	  intel_atomic.o \
  	  intel_atomic_plane.o \
  	  intel_bios.o \
-@@ -73,11 +73,11 @@ i915-y += intel_audio.o \
+@@ -78,11 +78,11 @@ i915-y += intel_audio.o \
  	  intel_psr.o \
  	  intel_sideband.o \
  	  intel_sprite.o
@@ -97,7 +97,7 @@
  	  dvo_ch7xxx.o \
  	  dvo_ivch.o \
  	  dvo_ns2501.o \
-@@ -102,13 +102,13 @@ i915-y += dvo_ch7017.o \
+@@ -107,13 +107,13 @@ i915-y += dvo_ch7017.o \
  	  intel_tv.o
  
  # virtual gpu code

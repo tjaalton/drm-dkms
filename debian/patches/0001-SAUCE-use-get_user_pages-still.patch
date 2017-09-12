@@ -1,0 +1,52 @@
+From 619e40932571cadcaacc0ed842d473b53b2ca6ed Mon Sep 17 00:00:00 2001
+From: Timo Aaltonen <timo.aaltonen@canonical.com>
+Date: Tue, 10 May 2016 15:16:33 +0300
+Subject: [PATCH] SAUCE: use get_user_pages still
+
+revert some of
+
+commit 1e9877902dc7e11d2be038371c6fbf2dfcd469d7
+Author: Dave Hansen <dave.hansen@linux.intel.com>
+Date:   Fri Feb 12 13:01:54 2016 -0800
+
+and
+
+commit 9beae1ea89305a9667ceaab6d0bf46a045ad71e7
+Author: Lorenzo Stoakes <lstoakes@gmail.com>
+Date:   Thu Oct 13 01:20:17 2016 +0100
+
+    mm: replace get_user_pages_remote() write/force parameters with gup_flags
+---
+ drivers/gpu/drm/i915/i915_gem_userptr.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/i915_gem_userptr.c b/drivers/gpu/drm/i915/i915_gem_userptr.c
+index c6f780f..3ebd9bd 100644
+--- a/drivers/gpu/drm/i915/i915_gem_userptr.c
++++ b/drivers/gpu/drm/i915/i915_gem_userptr.c
+@@ -508,20 +508,16 @@ __i915_gem_userptr_get_pages_worker(struct work_struct *_work)
+ 	pvec = drm_malloc_gfp(npages, sizeof(struct page *), GFP_TEMPORARY);
+ 	if (pvec != NULL) {
+ 		struct mm_struct *mm = obj->userptr.mm->mm;
+-		unsigned int flags = 0;
+-
+-		if (!obj->userptr.read_only)
+-			flags |= FOLL_WRITE;
+ 
+ 		ret = -EFAULT;
+ 		if (atomic_inc_not_zero(&mm->mm_users)) {
+ 			down_read(&mm->mmap_sem);
+ 			while (pinned < npages) {
+-				ret = get_user_pages_remote
++				ret = get_user_pages
+ 					(work->task, mm,
+ 					 obj->userptr.ptr + pinned * PAGE_SIZE,
+ 					 npages - pinned,
+-					 flags,
++					 !obj->userptr.read_only, 0,
+ 					 pvec + pinned, NULL);
+ 				if (ret < 0)
+ 					break;
+-- 
+2.7.4
+

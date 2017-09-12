@@ -1,0 +1,39 @@
+From a015d14b68e4f688aaaaf948acb34517fd78dca4 Mon Sep 17 00:00:00 2001
+From: Timo Aaltonen <timo.aaltonen@canonical.com>
+Date: Tue, 12 Sep 2017 12:35:50 +0300
+Subject: [PATCH] SAUCE-i915-use-vma-put-fence
+
+---
+ drivers/gpu/drm/i915/i915_gem.c            | 2 +-
+ drivers/gpu/drm/i915/i915_gem_execbuffer.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/i915_gem.c b/drivers/gpu/drm/i915/i915_gem.c
+index febf9a1..5a356fb 100644
+--- a/drivers/gpu/drm/i915/i915_gem.c
++++ b/drivers/gpu/drm/i915/i915_gem.c
+@@ -975,7 +975,7 @@ i915_gem_gtt_pwrite_fast(struct drm_device *dev,
+ 	if (ret)
+ 		goto out_unpin;
+ 
+-	ret = i915_gem_object_put_fence(obj);
++	ret = i915_vma_put_fence(vma);
+ 	if (ret)
+ 		goto out_unpin;
+ 
+diff --git a/drivers/gpu/drm/i915/i915_gem_execbuffer.c b/drivers/gpu/drm/i915/i915_gem_execbuffer.c
+index 4677317..6fd641b 100644
+--- a/drivers/gpu/drm/i915/i915_gem_execbuffer.c
++++ b/drivers/gpu/drm/i915/i915_gem_execbuffer.c
+@@ -423,7 +423,7 @@ static void *reloc_iomap(struct drm_i915_gem_object *obj,
+ 		if (IS_ERR(vma))
+ 			return NULL;
+ 
+-		ret = i915_gem_object_put_fence(obj);
++		ret = i915_vma_put_fence(vma);
+ 		if (ret) {
+ 			i915_vma_unpin(vma);
+ 			return ERR_PTR(ret);
+-- 
+2.7.4
+

@@ -1,0 +1,67 @@
+From 261bd0140baa6bbd132fd8d7c726a4ab7ab8404b Mon Sep 17 00:00:00 2001
+From: Timo Aaltonen <timo.aaltonen@canonical.com>
+Date: Mon, 11 Sep 2017 15:35:58 +0300
+Subject: [PATCH 1/2] Revert "drm/amdgpu: fix check for port PM availability"
+
+This reverts commit 7ac33e47d5769632010e537964c7e45498f8dc26.
+---
+ drivers/gpu/drm/amd/amdgpu/amdgpu_atpx_handler.c | 11 ++---------
+ 1 file changed, 2 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_atpx_handler.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_atpx_handler.c
+index 6c343a9..02ca5dd 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_atpx_handler.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_atpx_handler.c
+@@ -485,6 +485,7 @@ static int amdgpu_atpx_power_state(enum vga_switcheroo_client_id id,
+  */
+ static bool amdgpu_atpx_pci_probe_handle(struct pci_dev *pdev)
+ {
++	struct pci_dev *parent_pdev = pci_upstream_bridge(pdev);
+ 	acpi_handle dhandle, atpx_handle;
+ 	acpi_status status;
+ 
+@@ -499,6 +500,7 @@ static bool amdgpu_atpx_pci_probe_handle(struct pci_dev *pdev)
+ 	}
+ 	amdgpu_atpx_priv.dhandle = dhandle;
+ 	amdgpu_atpx_priv.atpx.handle = atpx_handle;
++	amdgpu_atpx_priv.bridge_pm_usable = parent_pdev && parent_pdev->bridge_d3;
+ 	return true;
+ }
+ 
+@@ -560,25 +562,17 @@ static bool amdgpu_atpx_detect(void)
+ 	struct pci_dev *pdev = NULL;
+ 	bool has_atpx = false;
+ 	int vga_count = 0;
+-	bool d3_supported = false;
+-	struct pci_dev *parent_pdev;
+ 
+ 	while ((pdev = pci_get_class(PCI_CLASS_DISPLAY_VGA << 8, pdev)) != NULL) {
+ 		vga_count++;
+ 
+ 		has_atpx |= (amdgpu_atpx_pci_probe_handle(pdev) == true);
+-
+-		parent_pdev = pci_upstream_bridge(pdev);
+-		d3_supported |= parent_pdev && parent_pdev->bridge_d3;
+ 	}
+ 
+ 	while ((pdev = pci_get_class(PCI_CLASS_DISPLAY_OTHER << 8, pdev)) != NULL) {
+ 		vga_count++;
+ 
+ 		has_atpx |= (amdgpu_atpx_pci_probe_handle(pdev) == true);
+-
+-		parent_pdev = pci_upstream_bridge(pdev);
+-		d3_supported |= parent_pdev && parent_pdev->bridge_d3;
+ 	}
+ 
+ 	if (has_atpx && vga_count == 2) {
+@@ -586,7 +580,6 @@ static bool amdgpu_atpx_detect(void)
+ 		printk(KERN_INFO "vga_switcheroo: detected switching method %s handle\n",
+ 		       acpi_method_name);
+ 		amdgpu_atpx_priv.atpx_detected = true;
+-		amdgpu_atpx_priv.bridge_pm_usable = d3_supported;
+ 		amdgpu_atpx_init();
+ 		return true;
+ 	}
+-- 
+2.7.4
+

@@ -1,0 +1,31 @@
+From 5fd65a7dd8a43bb82588d31c7e04890c1a9d7952 Mon Sep 17 00:00:00 2001
+From: Timo Aaltonen <timo.aaltonen@canonical.com>
+Date: Tue, 12 Sep 2017 09:15:14 +0300
+Subject: [PATCH] Revert "drm: i915: Explicitly apply PWM config extracted from
+ pwm_args"
+
+This reverts commit 2347aa7c34be284b266ab6b5f2bdf5daf14f582e.
+---
+ drivers/gpu/drm/i915/intel_panel.c | 6 ------
+ 1 file changed, 6 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/intel_panel.c b/drivers/gpu/drm/i915/intel_panel.c
+index be4b4d5..04ef61f 100644
+--- a/drivers/gpu/drm/i915/intel_panel.c
++++ b/drivers/gpu/drm/i915/intel_panel.c
+@@ -1662,12 +1662,6 @@ static int pwm_setup_backlight(struct intel_connector *connector,
+ 		return -ENODEV;
+ 	}
+ 
+-	/*
+-	 * FIXME: pwm_apply_args() should be removed when switching to
+-	 * the atomic PWM API.
+-	 */
+-	pwm_apply_args(panel->backlight.pwm);
+-
+ 	retval = pwm_config(panel->backlight.pwm, CRC_PMIC_PWM_PERIOD_NS,
+ 			    CRC_PMIC_PWM_PERIOD_NS);
+ 	if (retval < 0) {
+-- 
+2.7.4
+

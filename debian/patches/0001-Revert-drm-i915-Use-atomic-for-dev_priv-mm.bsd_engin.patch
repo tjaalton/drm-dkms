@@ -1,0 +1,63 @@
+From 97c6a1cd80ab2d8e7c9eabea0cc6444ae5faf0ff Mon Sep 17 00:00:00 2001
+From: Timo Aaltonen <timo.aaltonen@canonical.com>
+Date: Fri, 8 Sep 2017 00:11:32 +0300
+Subject: [PATCH] Revert "drm/i915: Use atomic for
+ dev_priv->mm.bsd_engine_dispatch_index"
+
+This reverts commit 6f633402847635817fd5eddb2d0e0a50cd521c1e.
+---
+ drivers/gpu/drm/i915/i915_drv.h            |  2 +-
+ drivers/gpu/drm/i915/i915_gem.c            |  2 --
+ drivers/gpu/drm/i915/i915_gem_execbuffer.c | 10 +++++++---
+ 3 files changed, 8 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/i915_drv.h b/drivers/gpu/drm/i915/i915_drv.h
+index b60cf7b..7947a56f 100644
+--- a/drivers/gpu/drm/i915/i915_drv.h
++++ b/drivers/gpu/drm/i915/i915_drv.h
+@@ -1359,7 +1359,7 @@ struct i915_gem_mm {
+ 	bool interruptible;
+ 
+ 	/* the indicator for dispatch video commands on two BSD rings */
+-	atomic_t bsd_engine_dispatch_index;
++	unsigned int bsd_engine_dispatch_index;
+ 
+ 	/** Bit 6 swizzling required for X tiling */
+ 	uint32_t bit_6_swizzle_x;
+diff --git a/drivers/gpu/drm/i915/i915_gem.c b/drivers/gpu/drm/i915/i915_gem.c
+index 7448c92..e8cdffe 100644
+--- a/drivers/gpu/drm/i915/i915_gem.c
++++ b/drivers/gpu/drm/i915/i915_gem.c
+@@ -4627,8 +4627,6 @@ i915_gem_load_init(struct drm_device *dev)
+ 
+ 	dev_priv->mm.interruptible = true;
+ 
+-	atomic_set(&dev_priv->mm.bsd_engine_dispatch_index, 0);
+-
+ 	spin_lock_init(&dev_priv->fb_tracking.lock);
+ }
+ 
+diff --git a/drivers/gpu/drm/i915/i915_gem_execbuffer.c b/drivers/gpu/drm/i915/i915_gem_execbuffer.c
+index 1cd1b5d..65c3f05 100644
+--- a/drivers/gpu/drm/i915/i915_gem_execbuffer.c
++++ b/drivers/gpu/drm/i915/i915_gem_execbuffer.c
+@@ -1507,9 +1507,13 @@ gen8_dispatch_bsd_engine(struct drm_i915_private *dev_priv,
+ 	struct drm_i915_file_private *file_priv = file->driver_priv;
+ 
+ 	/* Check whether the file_priv has already selected one ring. */
+-	if ((int)file_priv->bsd_engine < 0)
+-		file_priv->bsd_engine = atomic_fetch_xor(1,
+-			 &dev_priv->mm.bsd_engine_dispatch_index);
++	if ((int)file_priv->bsd_engine < 0) {
++		/* If not, use the ping-pong mechanism to select one. */
++		mutex_lock(&dev_priv->drm.struct_mutex);
++		file_priv->bsd_engine = dev_priv->mm.bsd_engine_dispatch_index;
++		dev_priv->mm.bsd_engine_dispatch_index ^= 1;
++		mutex_unlock(&dev_priv->drm.struct_mutex);
++	}
+ 
+ 	return file_priv->bsd_engine;
+ }
+-- 
+2.7.4
+

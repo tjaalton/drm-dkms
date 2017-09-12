@@ -1,0 +1,17 @@
+--- a/drivers/gpu/drm/i915/i915_gem_gtt.c
++++ b/drivers/gpu/drm/i915/i915_gem_gtt.c
+@@ -35,6 +35,14 @@
+ 
+ #define I915_GFP_DMA (GFP_KERNEL | __GFP_HIGHMEM)
+ 
++
++void intel_gtt_insert_page(dma_addr_t addr,
++                          unsigned int pg,
++                          unsigned int flags)
++{
++       intel_private.driver->write_entry(addr, pg, flags);
++}
++
+ /**
+  * DOC: Global GTT views
+  *
