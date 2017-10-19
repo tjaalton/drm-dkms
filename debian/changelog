@@ -1,9 +1,9 @@
-i915-4.9-4.4 (4.9.41-1) UNRELEASED; urgency=medium
+i915-4.9-4.4 (4.9.41-1) xenial; urgency=medium
 
   * New version v4.9.41.
   * Enable amdgpu.
 
- -- Timo Aaltonen <tjaalton@debian.org>  Mon, 04 Sep 2017 10:49:39 +0300
+ -- Timo Aaltonen <tjaalton@debian.org>  Thu, 19 Oct 2017 09:10:37 +0300
 
 i915-4.8-4.4 (4.8.17-2) xenial; urgency=medium
 
