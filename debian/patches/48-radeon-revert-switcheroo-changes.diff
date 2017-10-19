@@ -14,28 +14,6 @@ b00e5334ab1bb2e41187fb964a1a2304871fb4ff
  drivers/gpu/drm/radeon/radeon_drv.c          | 3 ---
  3 files changed, 1 insertion(+), 11 deletions(-)
 
-diff --git a/drivers/gpu/drm/radeon/radeon_atpx_handler.c b/drivers/gpu/drm/radeon/radeon_atpx_handler.c
-index ddef0d4..ebc9270 100644
---- a/drivers/gpu/drm/radeon/radeon_atpx_handler.c
-+++ b/drivers/gpu/drm/radeon/radeon_atpx_handler.c
-@@ -576,14 +576,13 @@ static bool radeon_atpx_detect(void)
- void radeon_register_atpx_handler(void)
- {
- 	bool r;
--	enum vga_switcheroo_handler_flags_t handler_flags = 0;
- 
- 	/* detect if we have any ATPX + 2 VGA in the system */
- 	r = radeon_atpx_detect();
- 	if (!r)
- 		return;
- 
--	vga_switcheroo_register_handler(&radeon_atpx_handler, handler_flags);
-+	vga_switcheroo_register_handler(&radeon_atpx_handler);
- }
- 
- /**
-diff --git a/drivers/gpu/drm/radeon/radeon_connectors.c b/drivers/gpu/drm/radeon/radeon_connectors.c
-index b79f3b0..30f0074 100644
 --- a/drivers/gpu/drm/radeon/radeon_connectors.c
 +++ b/drivers/gpu/drm/radeon/radeon_connectors.c
 @@ -34,7 +34,6 @@
@@ -46,7 +24,7 @@ index b79f3b0..30f0074 100644
  
  static int radeon_dp_handle_hpd(struct drm_connector *connector)
  {
-@@ -345,11 +344,6 @@ static void radeon_connector_get_edid(struct drm_connector *connector)
+@@ -345,11 +344,6 @@ static void radeon_connector_get_edid(st
  		else if (radeon_connector->ddc_bus)
  			radeon_connector->edid = drm_get_edid(&radeon_connector->base,
  							      &radeon_connector->ddc_bus->adapter);
@@ -58,11 +36,9 @@ index b79f3b0..30f0074 100644
  	} else if (radeon_connector->ddc_bus) {
  		radeon_connector->edid = drm_get_edid(&radeon_connector->base,
  						      &radeon_connector->ddc_bus->adapter);
-diff --git a/drivers/gpu/drm/radeon/radeon_drv.c b/drivers/gpu/drm/radeon/radeon_drv.c
-index c01a7c6..9b377d0 100644
 --- a/drivers/gpu/drm/radeon/radeon_drv.c
 +++ b/drivers/gpu/drm/radeon/radeon_drv.c
-@@ -343,9 +343,6 @@ static int radeon_pci_probe(struct pci_dev *pdev,
+@@ -344,9 +344,6 @@ static int radeon_pci_probe(struct pci_d
  	if (ret == -EPROBE_DEFER)
  		return ret;
  
@@ -72,6 +48,3 @@ index c01a7c6..9b377d0 100644
  	/* Get rid of things like offb */
  	ret = radeon_kick_out_firmware_fb(pdev);
  	if (ret)
--- 
-2.7.4
-
