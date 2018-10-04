@@ -1,6 +1,0 @@
-alias pci:v00008086d00000A84sv*sd*bc03sc*i* i915_bpo
-alias pci:v00008086d00001A84sv*sd*bc03sc*i* i915_bpo
-alias pci:v00008086d00001A85sv*sd*bc03sc*i* i915_bpo
-alias pci:v00008086d00005A84sv*sd*bc03sc*i* i915_bpo
-alias pci:v00008086d00005A85sv*sd*bc03sc*i* i915_bpo
-alias pci:v00008086d00005917sv*sd*bc03sc*i* i915_bpo
