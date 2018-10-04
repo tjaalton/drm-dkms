@@ -1,0 +1,143 @@
+From 7b37810cc550c412b09e8e3b7dd98d115559de1c Mon Sep 17 00:00:00 2001
+From: Timo Aaltonen <timo.aaltonen@canonical.com>
+Date: Thu, 4 Oct 2018 16:37:56 +0300
+Subject: [PATCH] Revert "treewide: kvzalloc() -> kvcalloc()"
+
+This reverts commit 778e1cdd81bb5fcd1e72bf48a2965cd7aaec82a8.
+---
+ arch/x86/kvm/page_track.c                     |  5 +--
+ arch/x86/kvm/x86.c                            |  5 +--
+ .../amd/display/modules/color/color_gamma.c   | 37 ++++++++-----------
+ drivers/gpu/drm/nouveau/nvkm/subdev/mmu/vmm.c |  2 +-
+ drivers/infiniband/hw/mlx5/srq.c              |  4 +-
+ drivers/md/dm-verity-target.c                 |  5 +--
+ drivers/net/ethernet/chelsio/cxgb4/clip_tbl.c |  2 +-
+ .../net/ethernet/chelsio/cxgb4/cxgb4_main.c   |  4 +-
+ .../net/ethernet/chelsio/cxgb4/cxgb4_tc_u32.c |  3 +-
+ drivers/net/ethernet/mellanox/mlx4/icm.c      |  2 +-
+ .../ethernet/mellanox/mlx5/core/fpga/conn.c   | 10 ++---
+ drivers/net/ethernet/netronome/nfp/abm/main.c |  2 +-
+ drivers/scsi/libiscsi.c                       |  2 +-
+ kernel/bpf/btf.c                              |  8 ++--
+ mm/gup_benchmark.c                            |  2 +-
+ mm/swap_slots.c                               |  4 +-
+ mm/swap_state.c                               |  2 +-
+ mm/swapfile.c                                 |  5 +--
+ net/sched/sch_fq_codel.c                      | 10 +++++
+ net/sched/sch_hhf.c                           |  9 ++---
+ 20 files changed, 60 insertions(+), 63 deletions(-)
+
+diff --git a/drivers/gpu/drm/amd/display/modules/color/color_gamma.c b/drivers/gpu/drm/amd/display/modules/color/color_gamma.c
+index eee0dfad6962..2533274e9cef 100644
+--- a/drivers/gpu/drm/amd/display/modules/color/color_gamma.c
++++ b/drivers/gpu/drm/amd/display/modules/color/color_gamma.c
+@@ -1274,22 +1274,19 @@ bool mod_color_calculate_regamma_params(struct dc_transfer_func *output_tf,
+ 
+ 	output_tf->type = TF_TYPE_DISTRIBUTED_POINTS;
+ 
+-	rgb_user = kvcalloc(ramp->num_entries + _EXTRA_POINTS,
+-			    sizeof(*rgb_user),
++	rgb_user = kvzalloc(sizeof(*rgb_user) * (ramp->num_entries + _EXTRA_POINTS),
+ 			    GFP_KERNEL);
+ 	if (!rgb_user)
+ 		goto rgb_user_alloc_fail;
+-	rgb_regamma = kvcalloc(MAX_HW_POINTS + _EXTRA_POINTS,
+-			       sizeof(*rgb_regamma),
++	rgb_regamma = kvzalloc(sizeof(*rgb_regamma) * (MAX_HW_POINTS + _EXTRA_POINTS),
+ 			       GFP_KERNEL);
+ 	if (!rgb_regamma)
+ 		goto rgb_regamma_alloc_fail;
+-	axix_x = kvcalloc(ramp->num_entries + 3, sizeof(*axix_x),
++	axix_x = kvzalloc(sizeof(*axix_x) * (ramp->num_entries + 3),
+ 			  GFP_KERNEL);
+ 	if (!axix_x)
+ 		goto axix_x_alloc_fail;
+-	coeff = kvcalloc(MAX_HW_POINTS + _EXTRA_POINTS, sizeof(*coeff),
+-			 GFP_KERNEL);
++	coeff = kvzalloc(sizeof(*coeff) * (MAX_HW_POINTS + _EXTRA_POINTS), GFP_KERNEL);
+ 	if (!coeff)
+ 		goto coeff_alloc_fail;
+ 
+@@ -1485,21 +1482,19 @@ bool mod_color_calculate_degamma_params(struct dc_transfer_func *input_tf,
+ 
+ 	input_tf->type = TF_TYPE_DISTRIBUTED_POINTS;
+ 
+-	rgb_user = kvcalloc(ramp->num_entries + _EXTRA_POINTS,
+-			    sizeof(*rgb_user),
++	rgb_user = kvzalloc(sizeof(*rgb_user) * (ramp->num_entries + _EXTRA_POINTS),
+ 			    GFP_KERNEL);
+ 	if (!rgb_user)
+ 		goto rgb_user_alloc_fail;
+-	curve = kvcalloc(MAX_HW_POINTS + _EXTRA_POINTS, sizeof(*curve),
++	curve = kvzalloc(sizeof(*curve) * (MAX_HW_POINTS + _EXTRA_POINTS),
+ 			 GFP_KERNEL);
+ 	if (!curve)
+ 		goto curve_alloc_fail;
+-	axix_x = kvcalloc(ramp->num_entries + _EXTRA_POINTS, sizeof(*axix_x),
++	axix_x = kvzalloc(sizeof(*axix_x) * (ramp->num_entries + _EXTRA_POINTS),
+ 			  GFP_KERNEL);
+ 	if (!axix_x)
+ 		goto axix_x_alloc_fail;
+-	coeff = kvcalloc(MAX_HW_POINTS + _EXTRA_POINTS, sizeof(*coeff),
+-			 GFP_KERNEL);
++	coeff = kvzalloc(sizeof(*coeff) * (MAX_HW_POINTS + _EXTRA_POINTS), GFP_KERNEL);
+ 	if (!coeff)
+ 		goto coeff_alloc_fail;
+ 
+@@ -1576,8 +1571,8 @@ bool  mod_color_calculate_curve(enum dc_transfer_func_predefined trans,
+ 		}
+ 		ret = true;
+ 	} else if (trans == TRANSFER_FUNCTION_PQ) {
+-		rgb_regamma = kvcalloc(MAX_HW_POINTS + _EXTRA_POINTS,
+-				       sizeof(*rgb_regamma),
++		rgb_regamma = kvzalloc(sizeof(*rgb_regamma) *
++				       (MAX_HW_POINTS + _EXTRA_POINTS),
+ 				       GFP_KERNEL);
+ 		if (!rgb_regamma)
+ 			goto rgb_regamma_alloc_fail;
+@@ -1601,8 +1596,8 @@ bool  mod_color_calculate_curve(enum dc_transfer_func_predefined trans,
+ 		kvfree(rgb_regamma);
+ 	} else if (trans == TRANSFER_FUNCTION_SRGB ||
+ 			  trans == TRANSFER_FUNCTION_BT709) {
+-		rgb_regamma = kvcalloc(MAX_HW_POINTS + _EXTRA_POINTS,
+-				       sizeof(*rgb_regamma),
++		rgb_regamma = kvzalloc(sizeof(*rgb_regamma) *
++				       (MAX_HW_POINTS + _EXTRA_POINTS),
+ 				       GFP_KERNEL);
+ 		if (!rgb_regamma)
+ 			goto rgb_regamma_alloc_fail;
+@@ -1645,8 +1640,8 @@ bool  mod_color_calculate_degamma_curve(enum dc_transfer_func_predefined trans,
+ 		}
+ 		ret = true;
+ 	} else if (trans == TRANSFER_FUNCTION_PQ) {
+-		rgb_degamma = kvcalloc(MAX_HW_POINTS + _EXTRA_POINTS,
+-				       sizeof(*rgb_degamma),
++		rgb_degamma = kvzalloc(sizeof(*rgb_degamma) *
++				       (MAX_HW_POINTS +	_EXTRA_POINTS),
+ 				       GFP_KERNEL);
+ 		if (!rgb_degamma)
+ 			goto rgb_degamma_alloc_fail;
+@@ -1665,8 +1660,8 @@ bool  mod_color_calculate_degamma_curve(enum dc_transfer_func_predefined trans,
+ 		kvfree(rgb_degamma);
+ 	} else if (trans == TRANSFER_FUNCTION_SRGB ||
+ 			  trans == TRANSFER_FUNCTION_BT709) {
+-		rgb_degamma = kvcalloc(MAX_HW_POINTS + _EXTRA_POINTS,
+-				       sizeof(*rgb_degamma),
++		rgb_degamma = kvzalloc(sizeof(*rgb_degamma) *
++				       (MAX_HW_POINTS + _EXTRA_POINTS),
+ 				       GFP_KERNEL);
+ 		if (!rgb_degamma)
+ 			goto rgb_degamma_alloc_fail;
+diff --git a/drivers/gpu/drm/nouveau/nvkm/subdev/mmu/vmm.c b/drivers/gpu/drm/nouveau/nvkm/subdev/mmu/vmm.c
+index de269eb482dd..1c12e58f44c2 100644
+--- a/drivers/gpu/drm/nouveau/nvkm/subdev/mmu/vmm.c
++++ b/drivers/gpu/drm/nouveau/nvkm/subdev/mmu/vmm.c
+@@ -59,7 +59,7 @@ nvkm_vmm_pt_new(const struct nvkm_vmm_desc *desc, bool sparse,
+ 	pgt->sparse = sparse;
+ 
+ 	if (desc->type == PGD) {
+-		pgt->pde = kvcalloc(pten, sizeof(*pgt->pde), GFP_KERNEL);
++		pgt->pde = kvzalloc(sizeof(*pgt->pde) * pten, GFP_KERNEL);
+ 		if (!pgt->pde) {
+ 			kfree(pgt);
+ 			return NULL;

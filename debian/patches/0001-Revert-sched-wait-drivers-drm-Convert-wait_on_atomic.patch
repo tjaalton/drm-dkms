@@ -1,0 +1,114 @@
+From 06d4d244609a84e7c3d90feb4ba6ca9ce0d4a78d Mon Sep 17 00:00:00 2001
+From: Timo Aaltonen <timo.aaltonen@canonical.com>
+Date: Thu, 4 Oct 2018 16:55:06 +0300
+Subject: [PATCH] Revert "sched/wait, drivers/drm: Convert wait_on_atomic_t()
+ usage to the new wait_var_event() API"
+
+This reverts commit d224985a5e312ab05b624143a3fd9bb91b53e52a.
+---
+ drivers/gpu/drm/drm_dp_aux_dev.c                 | 13 ++++++-------
+ .../gpu/drm/i915/selftests/intel_breadcrumbs.c   | 16 +++++++++++-----
+ 2 files changed, 17 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/gpu/drm/drm_dp_aux_dev.c b/drivers/gpu/drm/drm_dp_aux_dev.c
+index 0e4f25d63fd2..053044201e31 100644
+--- a/drivers/gpu/drm/drm_dp_aux_dev.c
++++ b/drivers/gpu/drm/drm_dp_aux_dev.c
+@@ -177,9 +177,8 @@ static ssize_t auxdev_read_iter(struct kiocb *iocb, struct iov_iter *to)
+ 		res = pos - iocb->ki_pos;
+ 	iocb->ki_pos = pos;
+ 
+-	if (atomic_dec_and_test(&aux_dev->usecount))
+-		wake_up_var(&aux_dev->usecount);
+-
++	atomic_dec(&aux_dev->usecount);
++	wake_up_atomic_t(&aux_dev->usecount);
+ 	return res;
+ }
+ 
+@@ -219,9 +218,8 @@ static ssize_t auxdev_write_iter(struct kiocb *iocb, struct iov_iter *from)
+ 		res = pos - iocb->ki_pos;
+ 	iocb->ki_pos = pos;
+ 
+-	if (atomic_dec_and_test(&aux_dev->usecount))
+-		wake_up_var(&aux_dev->usecount);
+-
++	atomic_dec(&aux_dev->usecount);
++	wake_up_atomic_t(&aux_dev->usecount);
+ 	return res;
+ }
+ 
+@@ -279,7 +277,8 @@ void drm_dp_aux_unregister_devnode(struct drm_dp_aux *aux)
+ 	mutex_unlock(&aux_idr_mutex);
+ 
+ 	atomic_dec(&aux_dev->usecount);
+-	wait_var_event(&aux_dev->usecount, !atomic_read(&aux_dev->usecount));
++	wait_on_atomic_t(&aux_dev->usecount, atomic_t_wait,
++			 TASK_UNINTERRUPTIBLE);
+ 
+ 	minor = aux_dev->index;
+ 	if (aux_dev->dev)
+diff --git a/drivers/gpu/drm/i915/selftests/intel_breadcrumbs.c b/drivers/gpu/drm/i915/selftests/intel_breadcrumbs.c
+index d6926e7820e5..04a63efa7f71 100644
+--- a/drivers/gpu/drm/i915/selftests/intel_breadcrumbs.c
++++ b/drivers/gpu/drm/i915/selftests/intel_breadcrumbs.c
+@@ -271,13 +271,18 @@ struct igt_wakeup {
+ 	u32 seqno;
+ };
+ 
++static int wait_atomic_timeout(atomic_t *p, unsigned int mode)
++{
++	return schedule_timeout(10 * HZ) ? 0 : -ETIMEDOUT;
++}
++
+ static bool wait_for_ready(struct igt_wakeup *w)
+ {
+ 	DEFINE_WAIT(ready);
+ 
+ 	set_bit(IDLE, &w->flags);
+ 	if (atomic_dec_and_test(w->done))
+-		wake_up_var(w->done);
++		wake_up_atomic_t(w->done);
+ 
+ 	if (test_bit(STOP, &w->flags))
+ 		goto out;
+@@ -294,7 +299,7 @@ static bool wait_for_ready(struct igt_wakeup *w)
+ out:
+ 	clear_bit(IDLE, &w->flags);
+ 	if (atomic_dec_and_test(w->set))
+-		wake_up_var(w->set);
++		wake_up_atomic_t(w->set);
+ 
+ 	return !test_bit(STOP, &w->flags);
+ }
+@@ -337,7 +342,7 @@ static void igt_wake_all_sync(atomic_t *ready,
+ 	atomic_set(ready, 0);
+ 	wake_up_all(wq);
+ 
+-	wait_var_event(set, !atomic_read(set));
++	wait_on_atomic_t(set, atomic_t_wait, TASK_UNINTERRUPTIBLE);
+ 	atomic_set(ready, count);
+ 	atomic_set(done, count);
+ }
+@@ -345,6 +350,7 @@ static void igt_wake_all_sync(atomic_t *ready,
+ static int igt_wakeup(void *arg)
+ {
+ 	I915_RND_STATE(prng);
++	const int state = TASK_UNINTERRUPTIBLE;
+ 	struct intel_engine_cs *engine = arg;
+ 	struct igt_wakeup *waiters;
+ 	DECLARE_WAIT_QUEUE_HEAD_ONSTACK(wq);
+@@ -412,8 +418,8 @@ static int igt_wakeup(void *arg)
+ 		 * that they are ready for the next test. We wait until all
+ 		 * threads are complete and waiting for us (i.e. not a seqno).
+ 		 */
+-		if (!wait_var_event_timeout(&done,
+-					    !atomic_read(&done), 10 * HZ)) {
++		if (!wait_on_atomic_t(&done,
++				      wait_atomic_timeout, state)) {
+ 			pr_err("Timed out waiting for %d remaining waiters\n",
+ 			       atomic_read(&done));
+ 			err = -ETIMEDOUT;
+-- 
+2.17.1
+

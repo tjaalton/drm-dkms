@@ -1,0 +1,133 @@
+From 722ab1ef7d03d998e291d4036bfb9a2dd1fd761f Mon Sep 17 00:00:00 2001
+From: Timo Aaltonen <timo.aaltonen@canonical.com>
+Date: Thu, 4 Oct 2018 17:12:14 +0300
+Subject: [PATCH] Revert "treewide: Use array_size() in vzalloc()"
+
+This reverts commit fad953ce0b22cfd352a9a90b070c34b8791e6868.
+---
+ arch/powerpc/kvm/book3s_hv.c                   |  2 +-
+ arch/powerpc/mm/mmu_context_iommu.c            |  4 ++++
+ arch/x86/kvm/cpuid.c                           |  3 +--
+ block/partitions/check.c                       |  2 +-
+ drivers/block/zram/zram_drv.c                  |  2 +-
+ drivers/char/raw.c                             |  3 +--
+ drivers/cpufreq/intel_pstate.c                 |  2 +-
+ drivers/dma/mic_x100_dma.c                     |  3 +--
+ drivers/gpu/drm/amd/amdgpu/amdgpu_gart.c       |  3 +--
+ drivers/gpu/drm/drm_hashtab.c                  |  2 +-
+ drivers/gpu/drm/i915/gvt/gtt.c                 |  5 ++---
+ drivers/gpu/drm/i915/gvt/mmio.c                |  2 +-
+ drivers/gpu/drm/radeon/radeon_gart.c           |  3 +--
+ drivers/gpu/drm/selftests/test-drm_mm.c        | 18 +++++++++---------
+ drivers/gpu/drm/via/via_dmablit.c              |  2 +-
+ drivers/infiniband/core/umem_odp.c             | 16 ++++++----------
+ drivers/infiniband/hw/hns/hns_roce_mr.c        |  2 +-
+ drivers/infiniband/hw/qib/qib_init.c           |  6 ++----
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c        |  8 +++-----
+ drivers/infiniband/ulp/ipoib/ipoib_main.c      |  3 +--
+ drivers/lightnvm/pblk-init.c                   |  2 +-
+ drivers/lightnvm/pblk-recovery.c               |  2 +-
+ drivers/md/bcache/super.c                      |  4 ++--
+ drivers/md/dm-cache-policy-smq.c               |  2 +-
+ drivers/media/common/v4l2-tpg/v4l2-tpg-core.c  | 15 +++++----------
+ drivers/media/pci/cx23885/cx23885-alsa.c       |  2 +-
+ drivers/media/pci/cx25821/cx25821-alsa.c       |  2 +-
+ drivers/media/pci/cx88/cx88-alsa.c             |  2 +-
+ drivers/media/pci/saa7134/saa7134-alsa.c       |  2 +-
+ drivers/media/platform/vivid/vivid-core.c      |  4 ++--
+ drivers/media/v4l2-core/videobuf-dma-sg.c      |  2 +-
+ drivers/mtd/nand/raw/nandsim.c                 |  5 ++---
+ drivers/net/ethernet/broadcom/bnx2.c           |  7 +++----
+ .../net/ethernet/cavium/liquidio/octeon_droq.c |  4 ++--
+ .../net/ethernet/hisilicon/hns/hns_dsaf_main.c |  4 ++--
+ .../net/ethernet/huawei/hinic/hinic_hw_cmdq.c  |  5 ++---
+ .../net/ethernet/neterion/vxge/vxge-config.c   | 13 ++++++-------
+ drivers/net/ethernet/qlogic/qed/qed_l2.c       |  2 +-
+ drivers/net/ethernet/qlogic/qede/qede_filter.c |  5 ++---
+ .../ethernet/qlogic/qlcnic/qlcnic_83xx_hw.c    |  5 ++---
+ .../net/ethernet/qlogic/qlcnic/qlcnic_main.c   |  5 ++---
+ drivers/net/ethernet/sfc/ef10.c                |  3 +--
+ drivers/net/ethernet/sfc/falcon/farch.c        |  3 +--
+ drivers/net/ethernet/sfc/farch.c               |  3 +--
+ drivers/net/ppp/pptp.c                         |  2 +-
+ drivers/net/xen-netback/xenbus.c               |  4 ++--
+ drivers/s390/char/sclp_sd.c                    |  2 +-
+ drivers/scsi/megaraid/megaraid_sas_fusion.c    | 10 ++++------
+ drivers/scsi/qla2xxx/tcm_qla2xxx.c             |  4 +---
+ drivers/soc/fsl/qbman/qman.c                   |  3 +--
+ drivers/staging/rtl8188eu/core/rtw_mlme.c      |  2 +-
+ drivers/staging/rtl8723bs/core/rtw_mlme.c      |  2 +-
+ drivers/staging/rts5208/rtsx_chip.c            |  4 ++--
+ drivers/target/target_core_transport.c         |  2 +-
+ fs/nfsd/nfscache.c                             |  3 +--
+ fs/reiserfs/journal.c                          |  3 +--
+ fs/reiserfs/resize.c                           |  3 +--
+ kernel/bpf/verifier.c                          |  8 +++-----
+ kernel/kexec_file.c                            |  2 +-
+ lib/test_firmware.c                            | 10 ++++------
+ lib/test_kmod.c                                |  5 ++---
+ lib/test_rhashtable.c                          | 13 +++++--------
+ net/core/ethtool.c                             |  6 +++---
+ net/packet/af_packet.c                         |  2 +-
+ 64 files changed, 121 insertions(+), 163 deletions(-)
+
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_gart.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_gart.c
+@@ -369,8 +369,7 @@ int amdgpu_gart_init(struct amdgpu_devic
+ 
+ #ifdef CONFIG_DRM_AMDGPU_GART_DEBUGFS
+ 	/* Allocate pages table */
+-	adev->gart.pages = vzalloc(array_size(sizeof(void *),
+-					      adev->gart.num_cpu_pages));
++	adev->gart.pages = vzalloc(sizeof(void *) * adev->gart.num_cpu_pages);
+ 	if (adev->gart.pages == NULL)
+ 		return -ENOMEM;
+ #endif
+--- a/drivers/gpu/drm/drm_hashtab.c
++++ b/drivers/gpu/drm/drm_hashtab.c
+@@ -47,7 +47,7 @@ int drm_ht_create(struct drm_open_hash *
+ 	if (size <= PAGE_SIZE / sizeof(*ht->table))
+ 		ht->table = kcalloc(size, sizeof(*ht->table), GFP_KERNEL);
+ 	else
+-		ht->table = vzalloc(array_size(size, sizeof(*ht->table)));
++		ht->table = vzalloc(size*sizeof(*ht->table));
+ 	if (!ht->table) {
+ 		DRM_ERROR("Out of memory for hash table\n");
+ 		return -ENOMEM;
+--- a/drivers/gpu/drm/i915/gvt/gtt.c
++++ b/drivers/gpu/drm/i915/gvt/gtt.c
+@@ -1585,9 +1585,8 @@ static struct intel_vgpu_mm *intel_vgpu_
+ 	mm->type = INTEL_GVT_MM_GGTT;
+ 
+ 	nr_entries = gvt_ggtt_gm_sz(vgpu->gvt) >> I915_GTT_PAGE_SHIFT;
+-	mm->ggtt_mm.virtual_ggtt =
+-		vzalloc(array_size(nr_entries,
+-				   vgpu->gvt->device_info.gtt_entry_size));
++	mm->ggtt_mm.virtual_ggtt = vzalloc(nr_entries *
++					vgpu->gvt->device_info.gtt_entry_size);
+ 	if (!mm->ggtt_mm.virtual_ggtt) {
+ 		vgpu_free_mm(mm);
+ 		return ERR_PTR(-ENOMEM);
+--- a/drivers/gpu/drm/i915/gvt/mmio.c
++++ b/drivers/gpu/drm/i915/gvt/mmio.c
+@@ -267,7 +267,7 @@ int intel_vgpu_init_mmio(struct intel_vg
+ {
+ 	const struct intel_gvt_device_info *info = &vgpu->gvt->device_info;
+ 
+-	vgpu->mmio.vreg = vzalloc(array_size(info->mmio_size, 2));
++	vgpu->mmio.vreg = vzalloc(info->mmio_size * 2);
+ 	if (!vgpu->mmio.vreg)
+ 		return -ENOMEM;
+ 
+--- a/drivers/gpu/drm/radeon/radeon_gart.c
++++ b/drivers/gpu/drm/radeon/radeon_gart.c
+@@ -347,8 +347,7 @@ int radeon_gart_init(struct radeon_devic
+ 	DRM_INFO("GART: num cpu pages %u, num gpu pages %u\n",
+ 		 rdev->gart.num_cpu_pages, rdev->gart.num_gpu_pages);
+ 	/* Allocate pages table */
+-	rdev->gart.pages = vzalloc(array_size(sizeof(void *),
+-				   rdev->gart.num_cpu_pages));
++	rdev->gart.pages = vzalloc(sizeof(void *) * rdev->gart.num_cpu_pages);
+ 	if (rdev->gart.pages == NULL) {
+ 		radeon_gart_fini(rdev);
+ 		return -ENOMEM;

@@ -1,0 +1,122 @@
+From 92bad6ef11d19dde552c4f2f64b374c5375f0e7b Mon Sep 17 00:00:00 2001
+From: Timo Aaltonen <timo.aaltonen@canonical.com>
+Date: Thu, 4 Oct 2018 17:08:09 +0300
+Subject: [PATCH] Revert "treewide: Use array_size() in vmalloc()"
+
+This reverts commit 42bc47b35320e0e587a88e437e18f80f9c5bcbb2.
+---
+ arch/powerpc/kernel/rtasd.c                       |  3 +--
+ arch/powerpc/kvm/book3s_64_mmu_hv.c               |  2 +-
+ arch/s390/hypfs/hypfs_diag.c                      |  2 +-
+ arch/s390/kernel/module.c                         |  4 ++--
+ arch/s390/kernel/sthyi.c                          |  2 +-
+ arch/s390/kvm/gaccess.c                           |  2 +-
+ arch/s390/kvm/kvm-s390.c                          |  2 +-
+ arch/x86/kvm/cpuid.c                              |  5 ++---
+ drivers/base/firmware_loader/fallback.c           |  2 +-
+ drivers/dma/ipu/ipu_idmac.c                       |  3 +--
+ drivers/gpu/drm/drm_memory.c                      |  2 +-
+ drivers/gpu/drm/nouveau/nv84_fence.c              |  2 +-
+ drivers/gpu/drm/qxl/qxl_fb.c                      |  2 +-
+ drivers/gpu/drm/radeon/radeon_gart.c              |  4 ++--
+ drivers/gpu/drm/selftests/test-drm_mm.c           |  2 +-
+ drivers/iommu/tegra-gart.c                        |  2 +-
+ drivers/isdn/i4l/isdn_bsdcomp.c                   |  5 ++---
+ drivers/lightnvm/pblk-gc.c                        |  2 +-
+ drivers/md/bcache/sysfs.c                         |  3 +--
+ drivers/md/dm-cache-policy-smq.c                  |  2 +-
+ drivers/md/dm-region-hash.c                       |  2 +-
+ drivers/md/dm-switch.c                            |  3 +--
+ drivers/md/dm-thin.c                              |  4 +---
+ drivers/media/dvb-core/dmxdev.c                   |  3 +--
+ drivers/media/dvb-core/dvb_demux.c                |  6 ++----
+ drivers/media/pci/meye/meye.c                     |  2 +-
+ drivers/media/pci/pt1/pt1.c                       |  2 +-
+ drivers/media/pci/ttpci/av7110_ipack.c            |  2 +-
+ drivers/media/platform/soc_camera/soc_camera.c    |  3 +--
+ drivers/media/v4l2-core/videobuf-dma-sg.c         |  2 +-
+ drivers/mtd/ftl.c                                 |  2 +-
+ drivers/mtd/mtdoops.c                             |  6 ++----
+ drivers/mtd/mtdswap.c                             |  4 ++--
+ drivers/mtd/nand/raw/nandsim.c                    |  2 +-
+ drivers/mtd/rfd_ftl.c                             |  3 +--
+ .../ethernet/cavium/liquidio/request_manager.c    |  5 ++---
+ drivers/net/ethernet/intel/fm10k/fm10k_ethtool.c  |  2 +-
+ drivers/net/ethernet/intel/igb/igb_ethtool.c      |  8 ++++----
+ drivers/net/ethernet/intel/ixgbe/ixgbe_ethtool.c  |  2 +-
+ drivers/net/ethernet/intel/ixgbevf/ethtool.c      |  8 +++-----
+ .../net/ethernet/netronome/nfp/flower/metadata.c  |  3 +--
+ drivers/net/ppp/bsd_comp.c                        |  4 ++--
+ drivers/net/wireless/ath/ath5k/debug.c            |  2 +-
+ drivers/net/wireless/marvell/mwifiex/cfg80211.c   |  4 ++--
+ drivers/oprofile/event_buffer.c                   |  2 +-
+ drivers/rapidio/devices/rio_mport_cdev.c          |  2 +-
+ drivers/scsi/fnic/fnic_debugfs.c                  |  7 +++----
+ drivers/scsi/fnic/fnic_trace.c                    | 15 ++++++---------
+ drivers/scsi/ipr.c                                |  6 ++----
+ drivers/scsi/osst.c                               |  2 +-
+ drivers/scsi/scsi_debug.c                         |  3 +--
+ drivers/staging/android/ion/ion_heap.c            |  3 +--
+ drivers/staging/greybus/camera.c                  |  5 ++---
+ drivers/staging/media/zoran/zoran_driver.c        |  3 +--
+ drivers/staging/rts5208/ms.c                      |  2 +-
+ drivers/staging/rts5208/rtsx_chip.c               |  2 +-
+ drivers/usb/misc/sisusbvga/sisusb_con.c           |  2 +-
+ drivers/video/fbdev/xen-fbfront.c                 |  2 +-
+ fs/binfmt_elf.c                                   |  5 +++++
+ fs/cifs/misc.c                                    |  4 ++--
+ fs/dlm/lockspace.c                                |  2 +-
+ fs/reiserfs/bitmap.c                              |  2 +-
+ fs/ubifs/lpt.c                                    |  9 +++------
+ kernel/cgroup/cgroup-v1.c                         |  2 +-
+ kernel/power/swap.c                               |  6 +++---
+ kernel/rcu/rcutorture.c                           |  5 ++---
+ kernel/trace/tracing_map.c                        |  2 +-
+ mm/percpu-stats.c                                 |  2 +-
+ net/bridge/netfilter/ebtables.c                   | 11 +++++------
+ net/netfilter/ipvs/ip_vs_conn.c                   |  3 +--
+ sound/core/seq/seq_memory.c                       |  3 +--
+ sound/pci/cs46xx/dsp_spos.c                       |  5 ++---
+ sound/pci/emu10k1/emu10k1_main.c                  |  9 ++++-----
+ sound/pci/emu10k1/emufx.c                         |  2 +-
+ sound/pci/emu10k1/p16v.c                          |  2 +-
+ sound/pci/maestro3.c                              |  5 +----
+ sound/pci/trident/trident_main.c                  |  4 +---
+ virt/kvm/kvm_main.c                               |  3 +--
+ 78 files changed, 120 insertions(+), 159 deletions(-)
+
+--- a/drivers/gpu/drm/drm_memory.c
++++ b/drivers/gpu/drm/drm_memory.c
+@@ -80,7 +80,7 @@ static void *agp_remap(unsigned long off
+ 	 * page-table instead (that's probably faster anyhow...).
+ 	 */
+ 	/* note: use vmalloc() because num_pages could be large... */
+-	page_map = vmalloc(array_size(num_pages, sizeof(struct page *)));
++	page_map = vmalloc(num_pages * sizeof(struct page *));
+ 	if (!page_map)
+ 		return NULL;
+ 
+--- a/drivers/gpu/drm/nouveau/nv84_fence.c
++++ b/drivers/gpu/drm/nouveau/nv84_fence.c
+@@ -141,7 +141,7 @@ nv84_fence_suspend(struct nouveau_drm *d
+ 	struct nv84_fence_priv *priv = drm->fence;
+ 	int i;
+ 
+-	priv->suspend = vmalloc(array_size(sizeof(u32), drm->chan.nr));
++	priv->suspend = vmalloc(drm->chan.nr * sizeof(u32));
+ 	if (priv->suspend) {
+ 		for (i = 0; i < drm->chan.nr; i++)
+ 			priv->suspend[i] = nouveau_bo_rd32(priv->bo, i*4);
+--- a/drivers/gpu/drm/radeon/radeon_gart.c
++++ b/drivers/gpu/drm/radeon/radeon_gart.c
+@@ -353,8 +353,8 @@ int radeon_gart_init(struct radeon_devic
+ 		radeon_gart_fini(rdev);
+ 		return -ENOMEM;
+ 	}
+-	rdev->gart.pages_entry = vmalloc(array_size(sizeof(uint64_t),
+-						    rdev->gart.num_gpu_pages));
++	rdev->gart.pages_entry = vmalloc(sizeof(uint64_t) *
++					 rdev->gart.num_gpu_pages);
+ 	if (rdev->gart.pages_entry == NULL) {
+ 		radeon_gart_fini(rdev);
+ 		return -ENOMEM;

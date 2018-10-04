@@ -1,0 +1,361 @@
+From 5e9c2a515f14e7c2a2dd24b9a9bcc6cf3250a727 Mon Sep 17 00:00:00 2001
+From: Timo Aaltonen <timo.aaltonen@canonical.com>
+Date: Thu, 4 Oct 2018 16:58:45 +0300
+Subject: [PATCH] Revert "vfs: do bulk POLL* -> EPOLL* replacement"
+
+This reverts commit a9a08845e9acbd224e4ee466f5c1275ed50054e8.
+---
+ arch/cris/arch-v10/drivers/gpio.c             |  857 +++++
+ arch/cris/arch-v10/drivers/sync_serial.c      | 1463 +++++++++
+ arch/cris/arch-v32/drivers/sync_serial.c      | 1715 ++++++++++
+ arch/ia64/kernel/perfmon.c                    |    2 +-
+ arch/mips/kernel/rtlx.c                       |    4 +-
+ arch/powerpc/kernel/rtasd.c                   |    2 +-
+ .../platforms/cell/spufs/backing_ops.c        |    8 +-
+ arch/powerpc/platforms/cell/spufs/file.c      |   10 +-
+ arch/powerpc/platforms/cell/spufs/hw_ops.c    |    8 +-
+ arch/powerpc/platforms/powernv/opal-prd.c     |    2 +-
+ arch/x86/kernel/apm_32.c                      |    2 +-
+ arch/x86/kernel/cpu/mcheck/dev-mcelog.c       |    4 +-
+ block/bsg.c                                   |    4 +-
+ crypto/af_alg.c                               |   16 +-
+ drivers/acpi/acpi_dbg.c                       |    4 +-
+ drivers/android/binder.c                      |    4 +-
+ drivers/bluetooth/hci_vhci.c                  |    4 +-
+ drivers/char/apm-emulation.c                  |    2 +-
+ drivers/char/dsp56k.c                         |    2 +-
+ drivers/char/dtlk.c                           |    6 +-
+ drivers/char/hpet.c                           |    2 +-
+ drivers/char/ipmi/bt-bmc.c                    |    4 +-
+ drivers/char/ipmi/ipmi_devintf.c              |    5 +
+ drivers/char/ipmi/ipmi_watchdog.c             |    5 +
+ drivers/char/pcmcia/cm4040_cs.c               |    4 +-
+ drivers/char/ppdev.c                          |    2 +-
+ drivers/char/random.c                         |    4 +-
+ drivers/char/rtc.c                            |    2 +-
+ drivers/char/snsc.c                           |    4 +-
+ drivers/char/sonypi.c                         |    2 +-
+ drivers/char/tpm/tpm_vtpm_proxy.c             |    6 +-
+ drivers/char/virtio_console.c                 |    8 +-
+ drivers/char/xillybus/xillybus_core.c         |   12 +-
+ drivers/dma-buf/dma-buf.c                     |   28 +-
+ drivers/dma-buf/sync_file.c                   |    2 +-
+ drivers/firewire/core-cdev.c                  |    4 +-
+ drivers/firewire/nosy.c                       |    4 +-
+ drivers/gpio/gpiolib.c                        |    4 +-
+ drivers/gpu/drm/drm_file.c                    |    2 +-
+ drivers/gpu/drm/i915/i915_perf.c              |   10 +-
+ drivers/gpu/vga/vgaarb.c                      |    2 +-
+ drivers/hid/hid-debug.c                       |    4 +-
+ drivers/hid/hid-roccat.c                      |    4 +-
+ drivers/hid/hid-sensor-custom.c               |    2 +-
+ drivers/hid/hidraw.c                          |    4 +-
+ drivers/hid/uhid.c                            |    2 +-
+ drivers/hid/usbhid/hiddev.c                   |    4 +-
+ drivers/hsi/clients/cmt_speech.c              |    4 +-
+ drivers/hv/hv_utils_transport.c               |    4 +-
+ drivers/iio/buffer/industrialio-buffer-dma.c  |    4 +-
+ drivers/iio/industrialio-buffer.c             |    6 +-
+ drivers/iio/industrialio-event.c              |    6 +-
+ drivers/infiniband/core/ucm.c                 |    2 +-
+ drivers/infiniband/core/ucma.c                |    2 +-
+ drivers/infiniband/core/user_mad.c            |    6 +-
+ drivers/infiniband/core/uverbs_main.c         |    2 +-
+ drivers/infiniband/hw/hfi1/file_ops.c         |    8 +-
+ drivers/infiniband/hw/qib/qib_file_ops.c      |    8 +-
+ drivers/infiniband/ulp/iser/iscsi_iser.c      |    2 +-
+ drivers/input/evdev.c                         |    6 +-
+ drivers/input/input.c                         |    2 +-
+ drivers/input/joydev.c                        |    4 +-
+ drivers/input/misc/hp_sdc_rtc.c               |    2 +-
+ drivers/input/misc/uinput.c                   |    2 +-
+ drivers/input/mousedev.c                      |    4 +-
+ drivers/input/serio/serio_raw.c               |    4 +-
+ drivers/input/serio/userio.c                  |    2 +-
+ drivers/isdn/capi/capi.c                      |    6 +-
+ drivers/isdn/divert/divert_procfs.c           |    4 +-
+ drivers/isdn/hardware/eicon/divamnt.c         |    4 +-
+ drivers/isdn/hardware/eicon/divasi.c          |   10 +-
+ drivers/isdn/hardware/eicon/divasmain.c       |    4 +-
+ drivers/isdn/hardware/eicon/divasproc.c       |    2 +-
+ drivers/isdn/hysdn/hysdn_proclog.c            |    2 +-
+ drivers/isdn/i4l/isdn_common.c                |   12 +-
+ drivers/isdn/i4l/isdn_ppp.c                   |    8 +-
+ drivers/isdn/mISDN/timerdev.c                 |    6 +-
+ drivers/leds/uleds.c                          |    2 +-
+ drivers/macintosh/smu.c                       |    2 +-
+ drivers/macintosh/via-pmu.c                   |    2 +-
+ drivers/mailbox/mailbox-test.c                |    2 +-
+ drivers/md/dm-ioctl.c                         |    2 +-
+ drivers/md/md.c                               |    6 +-
+ drivers/media/cec/cec-api.c                   |    8 +-
+ drivers/media/common/saa7146/saa7146_fops.c   |    6 +-
+ drivers/media/common/siano/smsdvb-debugfs.c   |    2 +-
+ .../media/common/videobuf2/videobuf2-core.c   |   30 +-
+ .../media/common/videobuf2/videobuf2-v4l2.c   |    8 +-
+ drivers/media/dvb-core/dmxdev.c               |   14 +-
+ drivers/media/dvb-core/dvb_ca_en50221.c       |    4 +-
+ drivers/media/dvb-core/dvb_frontend.c         |    2 +-
+ drivers/media/firewire/firedtv-ci.c           |    2 +-
+ drivers/media/i2c/saa6588.c                   |    4 +
+ drivers/media/media-devnode.c                 |    2 +-
+ drivers/media/pci/bt8xx/bttv-driver.c         |   22 +-
+ drivers/media/pci/cx18/cx18-fileops.c         |   16 +-
+ drivers/media/pci/ddbridge/ddbridge-core.c    |    4 +-
+ drivers/media/pci/ivtv/ivtv-fileops.c         |   16 +-
+ drivers/media/pci/meye/meye.c                 |    2 +-
+ drivers/media/pci/saa7164/saa7164-encoder.c   |    6 +-
+ drivers/media/pci/saa7164/saa7164-vbi.c       |    2 +-
+ drivers/media/pci/ttpci/av7110_av.c           |   10 +-
+ drivers/media/pci/ttpci/av7110_ca.c           |    4 +-
+ drivers/media/pci/zoran/zoran_driver.c        | 2849 +++++++++++++++++
+ drivers/media/platform/fsl-viu.c              |    4 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc.c      |    8 +-
+ .../media/platform/soc_camera/soc_camera.c    |    4 +-
+ drivers/media/platform/vivid/vivid-radio-rx.c |    2 +-
+ drivers/media/platform/vivid/vivid-radio-tx.c |    2 +-
+ drivers/media/radio/radio-cadet.c             |    4 +-
+ drivers/media/radio/radio-si476x.c            |    6 +-
+ drivers/media/radio/radio-wl1273.c            |    4 +-
+ .../media/radio/si470x/radio-si470x-common.c  |    4 +-
+ drivers/media/radio/wl128x/fmdrv_v4l2.c       |    2 +-
+ drivers/media/rc/lirc_dev.c                   |   12 +-
+ drivers/media/usb/cpia2/cpia2_core.c          |    4 +-
+ drivers/media/usb/cx231xx/cx231xx-417.c       |    4 +-
+ drivers/media/usb/cx231xx/cx231xx-video.c     |   10 +-
+ drivers/media/usb/gspca/gspca.c               |   36 +
+ drivers/media/usb/hdpvr/hdpvr-video.c         |    4 +-
+ drivers/media/usb/pvrusb2/pvrusb2-v4l2.c      |    6 +-
+ drivers/media/usb/stkwebcam/stk-webcam.c      |    4 +-
+ drivers/media/usb/tm6000/tm6000-video.c       |   14 +-
+ drivers/media/v4l2-core/v4l2-ctrls.c          |    2 +-
+ drivers/media/v4l2-core/v4l2-dev.c            |    2 +-
+ drivers/media/v4l2-core/v4l2-mem2mem.c        |   14 +-
+ drivers/media/v4l2-core/v4l2-subdev.c         |    4 +-
+ drivers/media/v4l2-core/videobuf-core.c       |   10 +-
+ drivers/mfd/ab8500-debugfs.c                  |    2 +-
+ drivers/misc/cxl/file.c                       |    4 +-
+ drivers/misc/hpilo.c                          |    4 +-
+ drivers/misc/lis3lv02d/lis3lv02d.c            |    2 +-
+ drivers/misc/mei/main.c                       |   12 +-
+ drivers/misc/mic/cosm/cosm_scif_server.c      |   16 +-
+ .../misc/mic/cosm_client/cosm_scif_client.c   |    4 +-
+ drivers/misc/mic/scif/scif_api.c              |   24 +-
+ drivers/misc/mic/vop/vop_vringh.c             |    8 +-
+ drivers/misc/ocxl/file.c                      |    4 +-
+ drivers/misc/phantom.c                        |    4 +-
+ drivers/misc/vmw_vmci/vmci_host.c             |    2 +-
+ drivers/net/ieee802154/ca8210.c               |    4 +-
+ drivers/net/ppp/ppp_generic.c                 |    8 +-
+ drivers/net/tap.c                             |   12 +-
+ drivers/net/tun.c                             |   18 +-
+ .../net/wireless/ralink/rt2x00/rt2x00debug.c  |    2 +-
+ drivers/pci/switch/switchtec.c                |    6 +-
+ drivers/platform/chrome/cros_ec_debugfs.c     |    2 +-
+ drivers/platform/goldfish/goldfish_pipe.c     |    8 +-
+ drivers/platform/x86/sony-laptop.c            |    2 +-
+ drivers/pps/pps.c                             |    2 +-
+ drivers/ptp/ptp_chardev.c                     |    2 +-
+ drivers/rapidio/devices/rio_mport_cdev.c      |    2 +-
+ drivers/rpmsg/qcom_smd.c                      |    2 +-
+ drivers/rpmsg/rpmsg_char.c                    |    4 +-
+ drivers/rtc/rtc-dev.c                         |    2 +-
+ drivers/s390/block/dasd_eer.c                 |    2 +-
+ drivers/s390/char/monreader.c                 |    4 +-
+ drivers/scsi/megaraid/megaraid_sas_base.c     |    2 +-
+ drivers/scsi/mpt3sas/mpt3sas_ctl.c            |    2 +-
+ drivers/scsi/sg.c                             |   12 +-
+ drivers/staging/comedi/comedi_fops.c          |    4 +-
+ drivers/staging/comedi/drivers/serial2002.c   |    6 +
+ drivers/staging/fwserial/fwserial.c           |    2 +-
+ drivers/staging/greybus/tools/loopback_test.c |    4 +-
+ drivers/staging/irda/net/af_irda.c            | 2694 ++++++++++++++++
+ drivers/staging/irda/net/irnet/irnet_ppp.c    | 1189 +++++++
+ .../media/atomisp/pci/atomisp2/atomisp_fops.c | 1298 ++++++++
+ drivers/staging/media/bcm2048/radio-bcm2048.c |    2 +-
+ drivers/staging/most/cdev/cdev.c              |    8 +
+ drivers/staging/most/video/video.c            |    2 +-
+ drivers/staging/speakup/speakup_soft.c        |    2 +-
+ drivers/tty/n_gsm.c                           |    6 +-
+ drivers/tty/n_hdlc.c                          |    8 +-
+ drivers/tty/n_r3964.c                         |    6 +-
+ drivers/tty/n_tty.c                           |   16 +-
+ drivers/tty/pty.c                             |    4 +-
+ drivers/tty/tty_io.c                          |   14 +-
+ drivers/tty/tty_ldisc.c                       |    4 +-
+ drivers/tty/vt/vc_screen.c                    |    4 +
+ drivers/uio/uio.c                             |    2 +-
+ drivers/usb/class/cdc-wdm.c                   |    8 +-
+ drivers/usb/class/usblp.c                     |    4 +-
+ drivers/usb/class/usbtmc.c                    |    4 +-
+ drivers/usb/core/devices.c                    |    2 +-
+ drivers/usb/core/devio.c                      |    6 +-
+ drivers/usb/gadget/function/f_fs.c            |   10 +-
+ drivers/usb/gadget/function/f_hid.c           |    4 +-
+ drivers/usb/gadget/function/f_printer.c       |    4 +-
+ drivers/usb/gadget/legacy/inode.c             |    6 +-
+ drivers/usb/misc/iowarrior.c                  |    8 +-
+ drivers/usb/misc/ldusb.c                      |    6 +-
+ drivers/usb/misc/legousbtower.c               |    6 +-
+ drivers/usb/mon/mon_bin.c                     |    2 +-
+ drivers/vfio/virqfd.c                         |    8 +-
+ drivers/vhost/net.c                           |    4 +-
+ drivers/vhost/vhost.c                         |   14 +-
+ drivers/virt/fsl_hypervisor.c                 |    2 +-
+ drivers/xen/evtchn.c                          |    8 +-
+ drivers/xen/mcelog.c                          |    2 +-
+ drivers/xen/pvcalls-front.c                   |   25 +-
+ drivers/xen/xenbus/xenbus_dev_frontend.c      |    2 +-
+ fs/cachefiles/daemon.c                        |    6 +-
+ fs/coda/psdev.c                               |    4 +-
+ fs/debugfs/file.c                             |    2 +-
+ fs/dlm/plock.c                                |    2 +-
+ fs/dlm/user.c                                 |    2 +-
+ fs/ecryptfs/miscdev.c                         |    2 +-
+ fs/eventfd.c                                  |   18 +-
+ fs/eventpoll.c                                |   22 +-
+ fs/fcntl.c                                    |   12 +-
+ fs/fuse/dev.c                                 |    8 +-
+ fs/fuse/file.c                                |    2 +-
+ fs/kernfs/file.c                              |    4 +-
+ fs/notify/fanotify/fanotify_user.c            |    2 +-
+ fs/notify/inotify/inotify_user.c              |    2 +-
+ fs/ocfs2/dlmfs/dlmfs.c                        |    6 +-
+ fs/orangefs/devorangefs-req.c                 |   29 +
+ fs/pipe.c                                     |   22 +-
+ fs/proc/kmsg.c                                |    2 +-
+ fs/proc/proc_sysctl.c                         |    4 +-
+ fs/proc_namespace.c                           |    4 +-
+ fs/select.c                                   |   34 +-
+ fs/signalfd.c                                 |    4 +-
+ fs/timerfd.c                                  |    2 +-
+ fs/userfaultfd.c                              |   16 +-
+ include/linux/scif.h                          |   16 +-
+ include/media/videobuf2-core.h                |    6 +-
+ include/net/inet_connection_sock.h            |    2 +-
+ ipc/mqueue.c                                  |    4 +-
+ kernel/events/core.c                          |    2 +-
+ kernel/events/ring_buffer.c                   |    2 +-
+ kernel/printk/printk.c                        |    6 +-
+ kernel/relay.c                                |    4 +-
+ kernel/time/posix-clock.c                     |    2 +-
+ kernel/trace/ring_buffer.c                    |    4 +-
+ kernel/trace/trace.c                          |    4 +-
+ mm/memcontrol.c                               |    4 +-
+ mm/swapfile.c                                 |    4 +-
+ net/9p/trans_fd.c                             |   40 +-
+ net/atm/common.c                              |    8 +-
+ net/batman-adv/icmp_socket.c                  |    2 +-
+ net/batman-adv/log.c                          |    2 +-
+ net/bluetooth/af_bluetooth.c                  |   16 +-
+ net/caif/caif_socket.c                        |   12 +-
+ net/core/datagram.c                           |   16 +-
+ net/core/sock.c                               |   10 +-
+ net/core/stream.c                             |    4 +-
+ net/dccp/proto.c                              |   12 +-
+ net/decnet/af_decnet.c                        |    2 +-
+ net/ipv4/af_inet.c                            |    2 +-
+ net/ipv4/tcp.c                                |   37 +-
+ net/ipv4/tcp_input.c                          |    2 +-
+ net/ipv4/udp.c                                |    6 +-
+ net/iucv/af_iucv.c                            |   18 +-
+ net/kcm/kcmsock.c                             |    6 +-
+ net/nfc/llcp_sock.c                           |   16 +-
+ net/packet/af_packet.c                        |    4 +-
+ net/phonet/socket.c                           |   10 +-
+ net/rds/af_rds.c                              |   19 +-
+ net/rfkill/core.c                             |    4 +-
+ net/rxrpc/af_rxrpc.c                          |    4 +-
+ net/sctp/socket.c                             |   20 +-
+ net/smc/af_smc.c                              |   33 +-
+ net/smc/smc_rx.c                              |    4 +-
+ net/smc/smc_tx.c                              |    4 +-
+ net/sunrpc/cache.c                            |    4 +-
+ net/sunrpc/rpc_pipe.c                         |    6 +-
+ net/tipc/socket.c                             |   22 +-
+ net/unix/af_unix.c                            |   40 +-
+ net/vmw_vsock/af_vsock.c                      |   30 +-
+ security/apparmor/apparmorfs.c                |    2 +-
+ security/tomoyo/audit.c                       |    6 +-
+ security/tomoyo/common.c                      |   14 +-
+ security/tomoyo/securityfs_if.c               |    4 +-
+ sound/core/compress_offload.c                 |   10 +-
+ sound/core/control.c                          |    2 +-
+ sound/core/info.c                             |    4 +-
+ sound/core/init.c                             |    2 +-
+ sound/core/oss/pcm_oss.c                      |    4 +-
+ sound/core/pcm_native.c                       |   60 +
+ sound/core/rawmidi.c                          |    4 +-
+ sound/core/seq/oss/seq_oss_rw.c               |    4 +-
+ sound/core/seq/seq_clientmgr.c                |    4 +-
+ sound/core/timer.c                            |    4 +-
+ sound/firewire/bebob/bebob_hwdep.c            |    2 +-
+ sound/firewire/dice/dice-hwdep.c              |    2 +-
+ sound/firewire/digi00x/digi00x-hwdep.c        |    2 +-
+ sound/firewire/fireface/ff-hwdep.c            |    2 +-
+ sound/firewire/fireworks/fireworks_hwdep.c    |    4 +-
+ sound/firewire/motu/motu-hwdep.c              |    4 +-
+ sound/firewire/oxfw/oxfw-hwdep.c              |    2 +-
+ sound/firewire/tascam/tascam-hwdep.c          |    2 +-
+ sound/oss/dmasound/dmasound_core.c            |    2 +-
+ sound/usb/mixer_quirks.c                      |    2 +-
+ sound/usb/usx2y/us122l.c                      |    4 +-
+ sound/usb/usx2y/usX2Yhwdep.c                  |    4 +-
+ virt/kvm/eventfd.c                            |   14 +-
+ 297 files changed, 13199 insertions(+), 839 deletions(-)
+ create mode 100644 arch/cris/arch-v10/drivers/gpio.c
+ create mode 100644 arch/cris/arch-v10/drivers/sync_serial.c
+ create mode 100644 arch/cris/arch-v32/drivers/sync_serial.c
+ create mode 100644 drivers/media/pci/zoran/zoran_driver.c
+ create mode 100644 drivers/staging/irda/net/af_irda.c
+ create mode 100644 drivers/staging/irda/net/irnet/irnet_ppp.c
+ create mode 100644 drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c
+
+--- a/drivers/gpu/drm/drm_file.c
++++ b/drivers/gpu/drm/drm_file.c
+@@ -568,7 +568,7 @@ unsigned int drm_poll(struct file *filp,
+ 	poll_wait(filp, &file_priv->event_wait, wait);
+ 
+ 	if (!list_empty(&file_priv->event_list))
+-		mask |= EPOLLIN | EPOLLRDNORM;
++		mask |= POLLIN | POLLRDNORM;
+ 
+ 	return mask;
+ }
+--- a/drivers/gpu/drm/i915/i915_perf.c
++++ b/drivers/gpu/drm/i915/i915_perf.c
+@@ -245,7 +245,7 @@
+  * The two separate pointers let us decouple read()s from tail pointer aging.
+  *
+  * The tail pointers are checked and updated at a limited rate within a hrtimer
+- * callback (the same callback that is used for delivering EPOLLIN events)
++ * callback (the same callback that is used for delivering POLLIN events)
+  *
+  * Initially the tails are marked invalid with %INVALID_TAIL_PTR which
+  * indicates that an updated tail pointer is needed.
+@@ -2286,13 +2286,13 @@ static ssize_t i915_perf_read(struct fil
+ 		mutex_unlock(&dev_priv->perf.lock);
+ 	}
+ 
+-	/* We allow the poll checking to sometimes report false positive EPOLLIN
++	/* We allow the poll checking to sometimes report false positive POLLIN
+ 	 * events where we might actually report EAGAIN on read() if there's
+ 	 * not really any data available. In this situation though we don't
+-	 * want to enter a busy loop between poll() reporting a EPOLLIN event
++	 * want to enter a busy loop between poll() reporting a POLLIN event
+ 	 * and read() returning -EAGAIN. Clearing the oa.pollin state here
+ 	 * effectively ensures we back off until the next hrtimer callback
+-	 * before reporting another EPOLLIN event.
++	 * before reporting another POLLIN event.
+ 	 */
+ 	if (ret >= 0 || ret == -EAGAIN) {
+ 		/* Maybe make ->pollin per-stream state if we support multiple
+@@ -2352,7 +2352,7 @@ static unsigned int i915_perf_poll_locke
+ 	 * samples to read.
+ 	 */
+ 	if (dev_priv->perf.oa.pollin)
+-		events |= EPOLLIN;
++		events |= POLLIN;
+ 
+ 	return events;
+ }

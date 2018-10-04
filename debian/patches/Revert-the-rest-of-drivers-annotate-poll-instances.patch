@@ -1,0 +1,212 @@
+From 51111690b221e87c3b00197d6b205f28fdb0061a Mon Sep 17 00:00:00 2001
+From: Timo Aaltonen <timo.aaltonen@canonical.com>
+Date: Thu, 4 Oct 2018 15:32:03 +0300
+Subject: [PATCH] Revert "the rest of drivers/*: annotate ->poll() instances"
+
+This reverts commit afc9a42b7464f76e1388cad87d8543c69f6f74ed.
+---
+ drivers/android/binder.c                      |   2 +-
+ drivers/bluetooth/hci_ldisc.c                 |   2 +-
+ drivers/bluetooth/hci_vhci.c                  |   2 +-
+ drivers/char/apm-emulation.c                  |   2 +-
+ drivers/char/dsp56k.c                         |   2 +-
+ drivers/char/dtlk.c                           |   6 +-
+ drivers/char/hpet.c                           |   2 +-
+ drivers/char/ipmi/bt-bmc.c                    |   4 +-
+ drivers/char/ipmi/ipmi_devintf.c              |   4 +-
+ drivers/char/ipmi/ipmi_watchdog.c             |   4 +-
+ drivers/char/pcmcia/cm4040_cs.c               |   4 +-
+ drivers/char/ppdev.c                          |   4 +-
+ drivers/char/random.c                         |   4 +-
+ drivers/char/rtc.c                            |   4 +-
+ drivers/char/snsc.c                           |   4 +-
+ drivers/char/sonypi.c                         |   2 +-
+ drivers/char/tpm/tpm_vtpm_proxy.c             |   4 +-
+ drivers/char/virtio_console.c                 |   4 +-
+ drivers/char/xillybus/xillybus_core.c         |   4 +-
+ drivers/dma-buf/dma-buf.c                     |   6 +-
+ drivers/dma-buf/sync_file.c                   |   2 +-
+ drivers/firewire/core-cdev.c                  |   4 +-
+ drivers/firewire/nosy.c                       |   4 +-
+ drivers/gpio/gpiolib.c                        |   4 +-
+ drivers/gpu/drm/drm_file.c                    |   4 +-
+ drivers/gpu/drm/i915/i915_perf.c              |   8 +-
+ drivers/gpu/drm/vmwgfx/vmwgfx_drv.h           |   2 +-
+ drivers/gpu/drm/vmwgfx/vmwgfx_ioctl.c         |   2 +-
+ drivers/gpu/vga/vgaarb.c                      |   2 +-
+ drivers/hid/hid-debug.c                       |   2 +-
+ drivers/hid/hid-roccat.c                      |   2 +-
+ drivers/hid/hid-sensor-custom.c               |   4 +-
+ drivers/hid/hidraw.c                          |   2 +-
+ drivers/hid/uhid.c                            |   2 +-
+ drivers/hid/usbhid/hiddev.c                   |   2 +-
+ drivers/hsi/clients/cmt_speech.c              |   4 +-
+ drivers/hv/hv_utils_transport.c               |   2 +-
+ drivers/iio/iio_core.h                        |   2 +-
+ drivers/iio/industrialio-buffer.c             |   2 +-
+ drivers/iio/industrialio-event.c              |   4 +-
+ drivers/infiniband/core/ucm.c                 |   4 +-
+ drivers/infiniband/core/ucma.c                |   4 +-
+ drivers/infiniband/core/user_mad.c            |   6 +-
+ drivers/infiniband/core/uverbs_main.c         |   8 +-
+ drivers/infiniband/hw/hfi1/file_ops.c         |  18 +-
+ drivers/infiniband/hw/qib/qib_file_ops.c      |  14 +-
+ drivers/input/evdev.c                         |   4 +-
+ drivers/input/input.c                         |   2 +-
+ drivers/input/joydev.c                        |   2 +-
+ drivers/input/misc/hp_sdc_rtc.c               |   2 +-
+ drivers/input/misc/uinput.c                   |   2 +-
+ drivers/input/mousedev.c                      |   4 +-
+ drivers/input/serio/serio_raw.c               |   4 +-
+ drivers/input/serio/userio.c                  |   2 +-
+ drivers/isdn/capi/capi.c                      |   4 +-
+ drivers/isdn/divert/divert_procfs.c           |   4 +-
+ drivers/isdn/hardware/eicon/divamnt.c         |   4 +-
+ drivers/isdn/hardware/eicon/divasi.c          |   4 +-
+ drivers/isdn/hardware/eicon/divasmain.c       |   2 +-
+ drivers/isdn/hardware/eicon/divasproc.c       |   2 +-
+ drivers/isdn/hysdn/hysdn_proclog.c            |   4 +-
+ drivers/isdn/i4l/isdn_common.c                |   4 +-
+ drivers/isdn/i4l/isdn_ppp.c                   |   4 +-
+ drivers/isdn/i4l/isdn_ppp.h                   |   2 +-
+ drivers/isdn/mISDN/timerdev.c                 |   6 +-
+ drivers/leds/uleds.c                          |   2 +-
+ drivers/macintosh/smu.c                       |   4 +-
+ drivers/macintosh/via-pmu.c                   |   4 +-
+ drivers/mailbox/mailbox-test.c                |   2 +-
+ drivers/md/dm-ioctl.c                         |   4 +-
+ drivers/md/md.c                               |   4 +-
+ drivers/misc/cxl/api.c                        |   2 +-
+ drivers/misc/cxl/cxl.h                        |   2 +-
+ drivers/misc/cxl/file.c                       |   4 +-
+ drivers/misc/hpilo.c                          |   2 +-
+ drivers/misc/lis3lv02d/lis3lv02d.c            |   2 +-
+ drivers/misc/mei/main.c                       |   4 +-
+ drivers/misc/mic/scif/scif_api.c              |   7 +-
+ drivers/misc/mic/scif/scif_epd.h              |   2 +-
+ drivers/misc/mic/scif/scif_fd.c               |   2 +-
+ drivers/misc/mic/vop/vop_vringh.c             |   4 +-
+ drivers/misc/phantom.c                        |   4 +-
+ drivers/misc/vmw_vmci/vmci_host.c             |   4 +-
+ drivers/net/ieee802154/ca8210.c               |   4 +-
+ drivers/net/ppp/ppp_async.c                   |   2 +-
+ drivers/net/ppp/ppp_generic.c                 |   4 +-
+ drivers/net/ppp/ppp_synctty.c                 |   2 +-
+ drivers/net/tap.c                             |   6 +-
+ drivers/net/tun.c                             |   4 +-
+ drivers/net/wan/cosa.c                        |   2 +-
+ .../net/wireless/ralink/rt2x00/rt2x00debug.c  |   2 +-
+ drivers/pci/switch/switchtec.c                |   4 +-
+ drivers/platform/chrome/cros_ec_debugfs.c     |   4 +-
+ drivers/platform/goldfish/goldfish_pipe.c     |   4 +-
+ drivers/platform/x86/sony-laptop.c            |   2 +-
+ drivers/pps/pps.c                             |   2 +-
+ drivers/ptp/ptp_chardev.c                     |   2 +-
+ drivers/ptp/ptp_private.h                     |   2 +-
+ drivers/rapidio/devices/rio_mport_cdev.c      |   2 +-
+ drivers/rpmsg/qcom_smd.c                      |   4 +-
+ drivers/rpmsg/rpmsg_char.c                    |   4 +-
+ drivers/rpmsg/rpmsg_core.c                    |   2 +-
+ drivers/rpmsg/rpmsg_internal.h                |   2 +-
+ drivers/rtc/rtc-dev.c                         |   2 +-
+ drivers/s390/block/dasd_eer.c                 |   4 +-
+ drivers/s390/char/monreader.c                 |   2 +-
+ drivers/scsi/megaraid/megaraid_sas_base.c     |   4 +-
+ drivers/scsi/mpt3sas/mpt3sas_ctl.c            |   2 +-
+ drivers/scsi/sg.c                             |   4 +-
+ drivers/staging/comedi/comedi_fops.c          |   4 +-
+ drivers/staging/most/aim-cdev/cdev.c          | 564 ++++++++++++++++
+ drivers/staging/most/aim-v4l2/video.c         | 616 ++++++++++++++++++
+ drivers/staging/speakup/speakup_soft.c        |   4 +-
+ drivers/tty/n_gsm.c                           |   4 +-
+ drivers/tty/n_hdlc.c                          |   6 +-
+ drivers/tty/n_r3964.c                         |   8 +-
+ drivers/tty/n_tty.c                           |   4 +-
+ drivers/tty/tty_io.c                          |   6 +-
+ drivers/tty/vt/vc_screen.c                    |   6 +-
+ drivers/uio/uio.c                             |   2 +-
+ drivers/usb/class/cdc-wdm.c                   |   4 +-
+ drivers/usb/class/usblp.c                     |   4 +-
+ drivers/usb/class/usbtmc.c                    |   4 +-
+ drivers/usb/core/devices.c                    |   2 +-
+ drivers/usb/core/devio.c                      |   4 +-
+ drivers/usb/gadget/function/f_fs.c            |   6 +-
+ drivers/usb/gadget/function/f_hid.c           |   4 +-
+ drivers/usb/gadget/function/f_printer.c       |   4 +-
+ drivers/usb/gadget/legacy/inode.c             |   4 +-
+ drivers/usb/misc/iowarrior.c                  |   4 +-
+ drivers/usb/misc/ldusb.c                      |   4 +-
+ drivers/usb/misc/legousbtower.c               |   6 +-
+ drivers/usb/mon/mon_bin.c                     |   4 +-
+ drivers/vhost/net.c                           |   2 +-
+ drivers/vhost/vhost.c                         |   4 +-
+ drivers/vhost/vhost.h                         |   2 +-
+ drivers/virt/fsl_hypervisor.c                 |   4 +-
+ drivers/xen/evtchn.c                          |   6 +-
+ drivers/xen/mcelog.c                          |   2 +-
+ drivers/xen/pvcalls-front.c                   |  10 +-
+ drivers/xen/xenbus/xenbus_dev_frontend.c      |   2 +-
+ include/drm/drm_file.h                        |   2 +-
+ include/linux/rpmsg.h                         |   4 +-
+ include/misc/cxl.h                            |   2 +-
+ 144 files changed, 1456 insertions(+), 245 deletions(-)
+ create mode 100644 drivers/staging/most/aim-cdev/cdev.c
+ create mode 100644 drivers/staging/most/aim-v4l2/video.c
+
+--- a/drivers/gpu/drm/drm_file.c
++++ b/drivers/gpu/drm/drm_file.c
+@@ -560,10 +560,10 @@ EXPORT_SYMBOL(drm_read);
+  *
+  * Mask of POLL flags indicating the current status of the file.
+  */
+-__poll_t drm_poll(struct file *filp, struct poll_table_struct *wait)
++unsigned int drm_poll(struct file *filp, struct poll_table_struct *wait)
+ {
+ 	struct drm_file *file_priv = filp->private_data;
+-	__poll_t mask = 0;
++	unsigned int mask = 0;
+ 
+ 	poll_wait(filp, &file_priv->event_wait, wait);
+ 
+--- a/drivers/gpu/drm/i915/i915_perf.c
++++ b/drivers/gpu/drm/i915/i915_perf.c
+@@ -2336,12 +2336,12 @@ static enum hrtimer_restart oa_poll_chec
+  *
+  * Returns: any poll events that are ready without sleeping
+  */
+-static __poll_t i915_perf_poll_locked(struct drm_i915_private *dev_priv,
++static unsigned int i915_perf_poll_locked(struct drm_i915_private *dev_priv,
+ 					  struct i915_perf_stream *stream,
+ 					  struct file *file,
+ 					  poll_table *wait)
+ {
+-	__poll_t events = 0;
++	unsigned int events = 0;
+ 
+ 	stream->ops->poll_wait(stream, file, wait);
+ 
+@@ -2370,11 +2370,11 @@ static __poll_t i915_perf_poll_locked(st
+  *
+  * Returns: any poll events that are ready without sleeping
+  */
+-static __poll_t i915_perf_poll(struct file *file, poll_table *wait)
++static unsigned int i915_perf_poll(struct file *file, poll_table *wait)
+ {
+ 	struct i915_perf_stream *stream = file->private_data;
+ 	struct drm_i915_private *dev_priv = stream->dev_priv;
+-	__poll_t ret;
++	int ret;
+ 
+ 	mutex_lock(&dev_priv->perf.lock);
+ 	ret = i915_perf_poll_locked(dev_priv, stream, file, wait);
+--- a/include/drm/drm_file.h
++++ b/include/drm/drm_file.h
+@@ -363,7 +363,7 @@ int drm_open(struct inode *inode, struct
+ ssize_t drm_read(struct file *filp, char __user *buffer,
+ 		 size_t count, loff_t *offset);
+ int drm_release(struct inode *inode, struct file *filp);
+-__poll_t drm_poll(struct file *filp, struct poll_table_struct *wait);
++unsigned int drm_poll(struct file *filp, struct poll_table_struct *wait);
+ int drm_event_reserve_init_locked(struct drm_device *dev,
+ 				  struct drm_file *file_priv,
+ 				  struct drm_pending_event *p,

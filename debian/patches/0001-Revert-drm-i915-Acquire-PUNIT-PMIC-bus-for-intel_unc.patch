@@ -1,0 +1,89 @@
+From c9ca0c2d06c1414195d818e57253e0dd83504016 Mon Sep 17 00:00:00 2001
+From: Timo Aaltonen <timo.aaltonen@canonical.com>
+Date: Thu, 4 Oct 2018 17:02:16 +0300
+Subject: [PATCH] Revert "drm/i915: Acquire PUNIT->PMIC bus for
+ intel_uncore_forcewake_reset()"
+
+This reverts commit a5266db4d31410fbfb4f40118e58085994e83dbc.
+---
+ drivers/gpu/drm/i915/intel_uncore.c           | 17 ++++-------------
+ drivers/gpu/drm/i915/selftests/intel_uncore.c |  3 ---
+ 2 files changed, 4 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/intel_uncore.c b/drivers/gpu/drm/i915/intel_uncore.c
+index 448293eb638d..f1b227a8c4f4 100644
+--- a/drivers/gpu/drm/i915/intel_uncore.c
++++ b/drivers/gpu/drm/i915/intel_uncore.c
+@@ -358,7 +358,6 @@ intel_uncore_fw_release_timer(struct hrtimer *timer)
+ 	return HRTIMER_NORESTART;
+ }
+ 
+-/* Note callers must have acquired the PUNIT->PMIC bus, before calling this. */
+ static void intel_uncore_forcewake_reset(struct drm_i915_private *dev_priv,
+ 					 bool restore)
+ {
+@@ -367,8 +366,6 @@ static void intel_uncore_forcewake_reset(struct drm_i915_private *dev_priv,
+ 	int retry_count = 100;
+ 	enum forcewake_domains fw, active_domains;
+ 
+-	iosf_mbi_assert_punit_acquired();
+-
+ 	/* Hold uncore.lock across reset to prevent any register access
+ 	 * with forcewake not set correctly. Wait until all pending
+ 	 * timers are run before holding.
+@@ -548,18 +545,14 @@ static void __intel_uncore_early_sanitize(struct drm_i915_private *dev_priv,
+ 				   GT_FIFO_CTL_RC6_POLICY_STALL);
+ 	}
+ 
+-	iosf_mbi_punit_acquire();
+ 	intel_uncore_forcewake_reset(dev_priv, restore_forcewake);
+-	iosf_mbi_punit_release();
+ }
+ 
+ void intel_uncore_suspend(struct drm_i915_private *dev_priv)
+ {
+-	iosf_mbi_punit_acquire();
+-	iosf_mbi_unregister_pmic_bus_access_notifier_unlocked(
++	iosf_mbi_unregister_pmic_bus_access_notifier(
+ 		&dev_priv->uncore.pmic_bus_access_nb);
+ 	intel_uncore_forcewake_reset(dev_priv, false);
+-	iosf_mbi_punit_release();
+ }
+ 
+ void intel_uncore_resume_early(struct drm_i915_private *dev_priv)
+@@ -1626,14 +1619,12 @@ void intel_uncore_prune(struct drm_i915_private *dev_priv)
+ 
+ void intel_uncore_fini(struct drm_i915_private *dev_priv)
+ {
++	iosf_mbi_unregister_pmic_bus_access_notifier(
++		&dev_priv->uncore.pmic_bus_access_nb);
++
+ 	/* Paranoia: make sure we have disabled everything before we exit. */
+ 	intel_uncore_sanitize(dev_priv);
+-
+-	iosf_mbi_punit_acquire();
+-	iosf_mbi_unregister_pmic_bus_access_notifier_unlocked(
+-		&dev_priv->uncore.pmic_bus_access_nb);
+ 	intel_uncore_forcewake_reset(dev_priv, false);
+-	iosf_mbi_punit_release();
+ }
+ 
+ static const struct reg_whitelist {
+diff --git a/drivers/gpu/drm/i915/selftests/intel_uncore.c b/drivers/gpu/drm/i915/selftests/intel_uncore.c
+index 47bc5b2ddb56..d905ae2c3c43 100644
+--- a/drivers/gpu/drm/i915/selftests/intel_uncore.c
++++ b/drivers/gpu/drm/i915/selftests/intel_uncore.c
+@@ -159,10 +159,7 @@ static int intel_uncore_check_forcewake_domains(struct drm_i915_private *dev_pri
+ 	for_each_set_bit(offset, valid, FW_RANGE) {
+ 		i915_reg_t reg = { offset };
+ 
+-		iosf_mbi_punit_acquire();
+ 		intel_uncore_forcewake_reset(dev_priv, false);
+-		iosf_mbi_punit_release();
+-
+ 		check_for_unclaimed_mmio(dev_priv);
+ 
+ 		(void)I915_READ(reg);
+-- 
+2.17.1
+

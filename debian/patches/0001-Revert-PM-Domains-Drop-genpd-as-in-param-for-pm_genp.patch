@@ -1,0 +1,26 @@
+From 1fc3218778d9d45657947be9a6be559980863d9b Mon Sep 17 00:00:00 2001
+From: Timo Aaltonen <timo.aaltonen@canonical.com>
+Date: Thu, 4 Oct 2018 16:00:05 +0300
+Subject: [PATCH] Revert "PM / Domains: Drop genpd as in-param for
+ pm_genpd_remove_device()"
+
+This reverts commit 924f448699627722a7dcaefb857d09fd324e75c5.
+---
+ drivers/base/power/domain.c             | 8 ++++----
+ drivers/gpu/drm/amd/amdgpu/amdgpu_acp.c | 2 +-
+ include/linux/pm_domain.h               | 5 +++--
+ 3 files changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_acp.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_acp.c
+index 71efcf38f11b..5eef6fb0a2a8 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_acp.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_acp.c
+@@ -539,7 +539,7 @@ static int acp_hw_fini(void *handle)
+ 	if (adev->acp.acp_genpd) {
+ 		for (i = 0; i < ACP_DEVS ; i++) {
+ 			dev = get_mfd_cell_dev(adev->acp.acp_cell[i].name, i);
+-			ret = pm_genpd_remove_device(dev);
++			ret = pm_genpd_remove_device(&adev->acp.acp_genpd->gpd, dev);
+ 			/* If removal fails, dont giveup and try rest */
+ 			if (ret)
+ 				dev_err(dev, "remove dev from genpd failed\n");

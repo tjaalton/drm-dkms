@@ -1,7 +1,17 @@
 #backport.patch
 drm-trim-build.diff
-# core drm
+i915-trim-build.diff
 
-# amdgpu
-
-# i915
+Revert-the-rest-of-drivers-annotate-poll-instances.patch
+0001-Revert-PM-Domains-Drop-genpd-as-in-param-for-pm_genp.patch
+0001-Revert-treewide-kvzalloc-kvcalloc.patch
+0001-Revert-i915-Re-use-DEFINE_SHOW_ATTRIBUTE-macro.patch
+0001-Revert-drm-fb-helper-Apply-panel-orientation-connect.patch
+0001-Revert-sched-wait-drivers-drm-Convert-wait_on_atomic.patch
+0001-Revert-vfs-do-bulk-POLL-EPOLL-replacement.patch
+0001-Revert-drm-i915-Acquire-PUNIT-PMIC-bus-for-intel_unc.patch
+0001-Revert-drm-Use-idr_init_base-1-when-using-id-0-for-i.patch
+0001-Revert-treewide-Use-array_size-in-vmalloc.patch
+0001-Revert-treewide-Use-array_size-in-vzalloc.patch
+add-filp-clone-open.diff
+# -> 4.18.12 builds

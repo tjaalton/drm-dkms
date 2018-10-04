@@ -1,0 +1,171 @@
+From 310663e599ce10b6b2868e19c91ed19c21033941 Mon Sep 17 00:00:00 2001
+From: Timo Aaltonen <timo.aaltonen@canonical.com>
+Date: Thu, 4 Oct 2018 16:45:02 +0300
+Subject: [PATCH] Revert "i915: Re-use DEFINE_SHOW_ATTRIBUTE() macro"
+
+This reverts commit e4006713d16567c203ba710f6a2b709ed6107db5.
+---
+ drivers/gpu/drm/i915/gvt/debugfs.c  | 13 ++++-
+ drivers/gpu/drm/i915/i915_debugfs.c | 76 ++++++++++++++++++++++++-----
+ 2 files changed, 77 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/gvt/debugfs.c b/drivers/gpu/drm/i915/gvt/debugfs.c
+index 2ec89bcb59f1..4cc2f5f3ba96 100644
+--- a/drivers/gpu/drm/i915/gvt/debugfs.c
++++ b/drivers/gpu/drm/i915/gvt/debugfs.c
+@@ -122,7 +122,18 @@ static int vgpu_mmio_diff_show(struct seq_file *s, void *unused)
+ 	seq_printf(s, "Total: %d, Diff: %d\n", param.total, param.diff);
+ 	return 0;
+ }
+-DEFINE_SHOW_ATTRIBUTE(vgpu_mmio_diff);
++
++static int vgpu_mmio_diff_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, vgpu_mmio_diff_show, inode->i_private);
++}
++
++static const struct file_operations vgpu_mmio_diff_fops = {
++	.open		= vgpu_mmio_diff_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
+ 
+ static int
+ vgpu_scan_nonprivbb_get(void *data, u64 *val)
+diff --git a/drivers/gpu/drm/i915/i915_debugfs.c b/drivers/gpu/drm/i915/i915_debugfs.c
+index 13e7b9e4a6e6..8520f648205d 100644
+--- a/drivers/gpu/drm/i915/i915_debugfs.c
++++ b/drivers/gpu/drm/i915/i915_debugfs.c
+@@ -3704,8 +3704,7 @@ static ssize_t i915_displayport_test_active_write(struct file *file,
+ 
+ static int i915_displayport_test_active_show(struct seq_file *m, void *data)
+ {
+-	struct drm_i915_private *dev_priv = m->private;
+-	struct drm_device *dev = &dev_priv->drm;
++	struct drm_device *dev = m->private;
+ 	struct drm_connector *connector;
+ 	struct drm_connector_list_iter conn_iter;
+ 	struct intel_dp *intel_dp;
+@@ -3739,8 +3738,10 @@ static int i915_displayport_test_active_show(struct seq_file *m, void *data)
+ static int i915_displayport_test_active_open(struct inode *inode,
+ 					     struct file *file)
+ {
++	struct drm_i915_private *dev_priv = inode->i_private;
++
+ 	return single_open(file, i915_displayport_test_active_show,
+-			   inode->i_private);
++			   &dev_priv->drm);
+ }
+ 
+ static const struct file_operations i915_displayport_test_active_fops = {
+@@ -3754,8 +3755,7 @@ static const struct file_operations i915_displayport_test_active_fops = {
+ 
+ static int i915_displayport_test_data_show(struct seq_file *m, void *data)
+ {
+-	struct drm_i915_private *dev_priv = m->private;
+-	struct drm_device *dev = &dev_priv->drm;
++	struct drm_device *dev = m->private;
+ 	struct drm_connector *connector;
+ 	struct drm_connector_list_iter conn_iter;
+ 	struct intel_dp *intel_dp;
+@@ -3794,12 +3794,26 @@ static int i915_displayport_test_data_show(struct seq_file *m, void *data)
+ 
+ 	return 0;
+ }
+-DEFINE_SHOW_ATTRIBUTE(i915_displayport_test_data);
++static int i915_displayport_test_data_open(struct inode *inode,
++					   struct file *file)
++{
++	struct drm_i915_private *dev_priv = inode->i_private;
++
++	return single_open(file, i915_displayport_test_data_show,
++			   &dev_priv->drm);
++}
++
++static const struct file_operations i915_displayport_test_data_fops = {
++	.owner = THIS_MODULE,
++	.open = i915_displayport_test_data_open,
++	.read = seq_read,
++	.llseek = seq_lseek,
++	.release = single_release
++};
+ 
+ static int i915_displayport_test_type_show(struct seq_file *m, void *data)
+ {
+-	struct drm_i915_private *dev_priv = m->private;
+-	struct drm_device *dev = &dev_priv->drm;
++	struct drm_device *dev = m->private;
+ 	struct drm_connector *connector;
+ 	struct drm_connector_list_iter conn_iter;
+ 	struct intel_dp *intel_dp;
+@@ -3826,7 +3840,23 @@ static int i915_displayport_test_type_show(struct seq_file *m, void *data)
+ 
+ 	return 0;
+ }
+-DEFINE_SHOW_ATTRIBUTE(i915_displayport_test_type);
++
++static int i915_displayport_test_type_open(struct inode *inode,
++				       struct file *file)
++{
++	struct drm_i915_private *dev_priv = inode->i_private;
++
++	return single_open(file, i915_displayport_test_type_show,
++			   &dev_priv->drm);
++}
++
++static const struct file_operations i915_displayport_test_type_fops = {
++	.owner = THIS_MODULE,
++	.open = i915_displayport_test_type_open,
++	.read = seq_read,
++	.llseek = seq_lseek,
++	.release = single_release
++};
+ 
+ static void wm_latency_show(struct seq_file *m, const uint16_t wm[8])
+ {
+@@ -4936,7 +4966,19 @@ static int i915_dpcd_show(struct seq_file *m, void *data)
+ 
+ 	return 0;
+ }
+-DEFINE_SHOW_ATTRIBUTE(i915_dpcd);
++
++static int i915_dpcd_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, i915_dpcd_show, inode->i_private);
++}
++
++static const struct file_operations i915_dpcd_fops = {
++	.owner = THIS_MODULE,
++	.open = i915_dpcd_open,
++	.read = seq_read,
++	.llseek = seq_lseek,
++	.release = single_release,
++};
+ 
+ static int i915_panel_show(struct seq_file *m, void *data)
+ {
+@@ -4958,7 +5000,19 @@ static int i915_panel_show(struct seq_file *m, void *data)
+ 
+ 	return 0;
+ }
+-DEFINE_SHOW_ATTRIBUTE(i915_panel);
++
++static int i915_panel_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, i915_panel_show, inode->i_private);
++}
++
++static const struct file_operations i915_panel_fops = {
++	.owner = THIS_MODULE,
++	.open = i915_panel_open,
++	.read = seq_read,
++	.llseek = seq_lseek,
++	.release = single_release,
++};
+ 
+ /**
+  * i915_debugfs_connector_add - add i915 specific connector debugfs files
+-- 
+2.17.1
+
