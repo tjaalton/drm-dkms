@@ -1,14 +1,14 @@
-Source: i915-4.9-4.4
+Source: i915-4.18-4.15
 Section: kernel
 Priority: optional
 Maintainer: Timo Aaltonen <timo.aaltonen@canonical.com>
 Build-Depends: debhelper (>=5), quilt, dh-modaliases
 
-Package: i915-4.9-4.4-dkms
+Package: i915-4.18-4.15-dkms
 Architecture: all
 XB-Modaliases: ${modaliases}
 Depends: dkms, linux-headers, ${misc:Depends}
-Description: Intel i915 video drivers from the mainline kernel,
- backported from the 4.9 series to the 4.4 series.
+Description: Intel i915 video drivers from the mainline kernel
+ Backported from 4.18 for 4.15 kernel.
  .
  This package contains the source to be built with dkms.
