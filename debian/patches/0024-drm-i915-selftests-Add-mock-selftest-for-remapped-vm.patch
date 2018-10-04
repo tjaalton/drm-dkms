@@ -1,0 +1,159 @@
+From fb80a227a834f0e6789a7debcddacc881201c6f5 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Ville=20Syrj=C3=A4l=C3=A4?= <ville.syrjala@linux.intel.com>
+Date: Tue, 25 Sep 2018 22:37:00 +0300
+Subject: [PATCH 24/32] drm/i915/selftests: Add mock selftest for remapped vmas
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Extend the rotated vma mock selftest to cover remapped vmas as
+well.
+
+TODO: reindent the loops I guess? Left like this for now to
+ease review
+
+Signed-off-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
+(cherry picked from commit 1ccdca62a3e56e70d2d29d6ea87afa490e198531)
+---
+ drivers/gpu/drm/i915/selftests/i915_vma.c | 70 +++++++++++++++++++++--
+ 1 file changed, 65 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/selftests/i915_vma.c b/drivers/gpu/drm/i915/selftests/i915_vma.c
+index d11d4eb5528b..f60daa349c93 100644
+--- a/drivers/gpu/drm/i915/selftests/i915_vma.c
++++ b/drivers/gpu/drm/i915/selftests/i915_vma.c
+@@ -58,7 +58,7 @@ static bool assert_vma(struct i915_vma *vma,
+ static struct i915_vma *
+ checked_vma_instance(struct drm_i915_gem_object *obj,
+ 		     struct i915_address_space *vm,
+-		     struct i915_ggtt_view *view)
++		     const struct i915_ggtt_view *view)
+ {
+ 	struct i915_vma *vma;
+ 	bool ok = true;
+@@ -396,13 +396,63 @@ assert_rotated(struct drm_i915_gem_object *obj,
+ 	return sg;
+ }
+ 
++static unsigned long remapped_index(const struct intel_remapped_info *r,
++				    unsigned int n,
++				    unsigned int x,
++				    unsigned int y)
++{
++	return (r->plane[n].stride * y +
++		r->plane[n].offset + x);
++}
++
++static struct scatterlist *
++assert_remapped(struct drm_i915_gem_object *obj,
++		const struct intel_remapped_info *r, unsigned int n,
++		struct scatterlist *sg)
++{
++	unsigned int x, y;
++
++	for (y = 0; y < r->plane[n].height; y++) {
++		for (x = 0; x < r->plane[n].width; x++) {
++			unsigned long src_idx;
++			dma_addr_t src;
++
++			if (!sg) {
++				pr_err("Invalid sg table: too short at plane %d, (%d, %d)!\n",
++				       n, x, y);
++				return ERR_PTR(-EINVAL);
++			}
++
++			src_idx = remapped_index(r, n, x, y);
++			src = i915_gem_object_get_dma_address(obj, src_idx);
++
++			if (sg_dma_len(sg) != PAGE_SIZE) {
++				pr_err("Invalid sg.length, found %d, expected %lu for remapped page (%d, %d) [src index %lu]\n",
++				       sg_dma_len(sg), PAGE_SIZE,
++				       x, y, src_idx);
++				return ERR_PTR(-EINVAL);
++			}
++
++			if (sg_dma_address(sg) != src) {
++				pr_err("Invalid address for remapped page (%d, %d) [src index %lu]\n",
++				       x, y, src_idx);
++				return ERR_PTR(-EINVAL);
++			}
++
++			sg = sg_next(sg);
++		}
++	}
++
++	return sg;
++}
++
+ static unsigned int rotated_size(const struct intel_remapped_plane_info *a,
+ 				 const struct intel_remapped_plane_info *b)
+ {
+ 	return a->width * a->height + b->width * b->height;
+ }
+ 
+-static int igt_vma_rotate(void *arg)
++static int igt_vma_rotate_remap(void *arg)
+ {
+ 	struct drm_i915_private *i915 = arg;
+ 	struct i915_address_space *vm = &i915->ggtt.base;
+@@ -425,6 +475,11 @@ static int igt_vma_rotate(void *arg)
+ 		{ .width = 6, .height = 4, .stride = 6 },
+ 		{ }
+ 	}, *a, *b;
++	enum i915_ggtt_view_type types[] = {
++		I915_GGTT_VIEW_ROTATED,
++		I915_GGTT_VIEW_REMAPPED,
++		0,
++	}, *t;
+ 	const unsigned int max_pages = 64;
+ 	int err = -ENOMEM;
+ 
+@@ -436,6 +491,7 @@ static int igt_vma_rotate(void *arg)
+ 	if (IS_ERR(obj))
+ 		goto out;
+ 
++	for (t = types; *t; t++) {
+ 	for (a = planes; a->width; a++) {
+ 		for (b = planes + ARRAY_SIZE(planes); b-- != planes; ) {
+ 			struct i915_ggtt_view view;
+@@ -446,7 +502,7 @@ static int igt_vma_rotate(void *arg)
+ 			GEM_BUG_ON(max_offset > max_pages);
+ 			max_offset = max_pages - max_offset;
+ 
+-			view.type = I915_GGTT_VIEW_ROTATED;
++			view.type = *t;
+ 			view.rotated.plane[0] = *a;
+ 			view.rotated.plane[1] = *b;
+ 
+@@ -496,7 +552,10 @@ static int igt_vma_rotate(void *arg)
+ 
+ 					sg = vma->pages->sgl;
+ 					for (n = 0; n < ARRAY_SIZE(view.rotated.plane); n++) {
+-						sg = assert_rotated(obj, &view.rotated, n, sg);
++						if (view.type == I915_GGTT_VIEW_ROTATED)
++							sg = assert_rotated(obj, &view.rotated, n, sg);
++						else
++							sg = assert_remapped(obj, &view.remapped, n, sg);
+ 						if (IS_ERR(sg)) {
+ 							pr_err("Inconsistent VMA pages for plane %d: [(%d, %d, %d, %d), (%d, %d, %d, %d)]\n", n,
+ 							       view.rotated.plane[0].width,
+@@ -517,6 +576,7 @@ static int igt_vma_rotate(void *arg)
+ 			}
+ 		}
+ 	}
++	}
+ 
+ out_object:
+ 	i915_gem_object_put(obj);
+@@ -720,7 +780,7 @@ int i915_vma_mock_selftests(void)
+ 	static const struct i915_subtest tests[] = {
+ 		SUBTEST(igt_vma_create),
+ 		SUBTEST(igt_vma_pin1),
+-		SUBTEST(igt_vma_rotate),
++		SUBTEST(igt_vma_rotate_remap),
+ 		SUBTEST(igt_vma_partial),
+ 	};
+ 	struct drm_i915_private *i915;
+-- 
+2.17.1
+

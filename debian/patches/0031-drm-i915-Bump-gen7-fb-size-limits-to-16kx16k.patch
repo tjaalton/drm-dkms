@@ -1,0 +1,64 @@
+From 0abb7d847611673e90f5e1fd14a5ee6905102cc8 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Ville=20Syrj=C3=A4l=C3=A4?= <ville.syrjala@linux.intel.com>
+Date: Tue, 25 Sep 2018 22:37:00 +0300
+Subject: [PATCH 31/32] drm/i915: Bump gen7+ fb size limits to 16kx16k
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+With gtt remapping in place we can use arbitrarily large
+framebuffers. Let's bump the limits to 16kx16k on gen7+.
+The limit was chosen to match the maximum 2D surface size
+of the 3D engine.
+
+With the remapping we could easily go higher than that for the
+display engine. However the modesetting ddx will blindly assume
+it can handle whatever is reported via kms. The oversized
+buffer dimensions are not caught by glamor nor Mesa until
+finally an assert will trip when genxml attempts to pack the
+SURFACE_STATE. So we pick a safe limit to avoid the X server
+from crashing (or potentially misbehaving if the genxml asserts
+are compiled out).
+
+Signed-off-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
+(cherry picked from commit 59038994da0ba1707b05bf5be8b0126263b71630)
+---
+ drivers/gpu/drm/i915/intel_display.c | 18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/intel_display.c b/drivers/gpu/drm/i915/intel_display.c
+index 6eb2df278b0e..dc9edfb13767 100644
+--- a/drivers/gpu/drm/i915/intel_display.c
++++ b/drivers/gpu/drm/i915/intel_display.c
+@@ -15325,16 +15325,22 @@ int intel_modeset_init(struct drm_device *dev)
+ 		}
+ 	}
+ 
+-	/* maximum framebuffer dimensions */
+-	if (IS_GEN2(dev_priv)) {
+-		dev->mode_config.max_width = 2048;
+-		dev->mode_config.max_height = 2048;
++	/*
++	 * Maximum framebuffer dimensions, chosen to match
++	 * the maximum render engine surface size on gen4+.
++	 */
++	if (INTEL_GEN(dev_priv) >= 7) {
++		dev->mode_config.max_width = 16384;
++		dev->mode_config.max_height = 16384;
++	} else if (INTEL_GEN(dev_priv) >= 4) {
++		dev->mode_config.max_width = 8192;
++		dev->mode_config.max_height = 8192;
+ 	} else if (IS_GEN3(dev_priv)) {
+ 		dev->mode_config.max_width = 4096;
+ 		dev->mode_config.max_height = 4096;
+ 	} else {
+-		dev->mode_config.max_width = 8192;
+-		dev->mode_config.max_height = 8192;
++		dev->mode_config.max_width = 2048;
++		dev->mode_config.max_height = 2048;
+ 	}
+ 
+ 	if (IS_I845G(dev_priv) || IS_I865G(dev_priv)) {
+-- 
+2.17.1
+

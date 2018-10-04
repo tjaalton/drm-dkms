@@ -1,0 +1,158 @@
+From c6ad955dd1fddb1209bb1f474da57fd9ba2a5122 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Ville=20Syrj=C3=A4l=C3=A4?= <ville.syrjala@linux.intel.com>
+Date: Fri, 7 Sep 2018 18:24:06 +0300
+Subject: [PATCH 07/32] drm/i915: Store ggtt_view in plane_state
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Stash the gtt_view structure into the plane state. This will become
+useful when we do GTT remapping as the gtt_view will not come directly
+from the fb anymore.
+
+Reviewed-by: José Roberto de Souza <jose.souza@intel.com>
+Signed-off-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
+Link: https://patchwork.freedesktop.org/patch/msgid/20180907152413.15761-7-ville.syrjala@linux.intel.com
+(cherry picked from commit f5929c5309a6a434f6f55969aa186d7a906f92bc)
+---
+ drivers/gpu/drm/i915/intel_display.c | 16 +++++++++-------
+ drivers/gpu/drm/i915/intel_drv.h     |  3 ++-
+ drivers/gpu/drm/i915/intel_fbdev.c   |  6 ++++--
+ 3 files changed, 15 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/intel_display.c b/drivers/gpu/drm/i915/intel_display.c
+index 7ea1c831b5f1..09534c63c344 100644
+--- a/drivers/gpu/drm/i915/intel_display.c
++++ b/drivers/gpu/drm/i915/intel_display.c
+@@ -2120,14 +2120,13 @@ static bool intel_plane_uses_fence(const struct intel_plane_state *plane_state)
+ 
+ struct i915_vma *
+ intel_pin_and_fence_fb_obj(struct drm_framebuffer *fb,
+-			   unsigned int rotation,
++			   const struct i915_ggtt_view *view,
+ 			   bool uses_fence,
+ 			   unsigned long *out_flags)
+ {
+ 	struct drm_device *dev = fb->dev;
+ 	struct drm_i915_private *dev_priv = to_i915(dev);
+ 	struct drm_i915_gem_object *obj = intel_fb_obj(fb);
+-	struct i915_ggtt_view view;
+ 	struct i915_vma *vma;
+ 	unsigned int pinctl;
+ 	u32 alignment;
+@@ -2136,8 +2135,6 @@ intel_pin_and_fence_fb_obj(struct drm_framebuffer *fb,
+ 
+ 	alignment = intel_surf_alignment(fb, 0);
+ 
+-	intel_fill_fb_ggtt_view(&view, fb, rotation);
+-
+ 	/* Note that the w/a also requires 64 PTE of padding following the
+ 	 * bo. We currently fill all unused PTE with the shadow page and so
+ 	 * we should always have valid PTE following the scanout preventing
+@@ -2170,7 +2167,7 @@ intel_pin_and_fence_fb_obj(struct drm_framebuffer *fb,
+ 		pinctl |= PIN_MAPPABLE;
+ 
+ 	vma = i915_gem_object_pin_to_display_plane(obj,
+-						   alignment, &view, pinctl);
++						   alignment, view, pinctl);
+ 	if (IS_ERR(vma))
+ 		goto err;
+ 
+@@ -2891,13 +2888,15 @@ intel_find_initial_plane_obj(struct intel_crtc *intel_crtc,
+ 	return;
+ 
+ valid_fb:
++	intel_fill_fb_ggtt_view(&intel_state->view, fb,
++				intel_state->base.rotation);
+ 	intel_state->color_plane[0].stride =
+ 		intel_fb_pitch(fb, 0, intel_state->base.rotation);
+ 
+ 	mutex_lock(&dev->struct_mutex);
+ 	intel_state->vma =
+ 		intel_pin_and_fence_fb_obj(fb,
+-					   primary->state->rotation,
++					   &intel_state->view,
+ 					   intel_plane_uses_fence(intel_state),
+ 					   &intel_state->flags);
+ 	mutex_unlock(&dev->struct_mutex);
+@@ -3211,6 +3210,7 @@ int skl_check_plane_surface(const struct intel_crtc_state *crtc_state,
+ 	unsigned int rotation = plane_state->base.rotation;
+ 	int ret;
+ 
++	intel_fill_fb_ggtt_view(&plane_state->view, fb, rotation);
+ 	plane_state->color_plane[0].stride = intel_fb_pitch(fb, 0, rotation);
+ 	plane_state->color_plane[1].stride = intel_fb_pitch(fb, 1, rotation);
+ 
+@@ -3357,6 +3357,7 @@ int i9xx_check_plane_surface(struct intel_plane_state *plane_state)
+ 	int src_y = plane_state->base.src.y1 >> 16;
+ 	u32 offset;
+ 
++	intel_fill_fb_ggtt_view(&plane_state->view, fb, rotation);
+ 	plane_state->color_plane[0].stride = intel_fb_pitch(fb, 0, rotation);
+ 
+ 	intel_add_fb_offsets(&src_x, &src_y, plane_state, 0);
+@@ -9603,6 +9604,7 @@ static int intel_check_cursor(struct intel_crtc_state *crtc_state,
+ 		return -EINVAL;
+ 	}
+ 
++	intel_fill_fb_ggtt_view(&plane_state->view, fb, rotation);
+ 	plane_state->color_plane[0].stride = intel_fb_pitch(fb, 0, rotation);
+ 
+ 	src_x = plane_state->base.src_x >> 16;
+@@ -12911,7 +12913,7 @@ static int intel_plane_pin_fb(struct intel_plane_state *plane_state)
+ 	}
+ 
+ 	vma = intel_pin_and_fence_fb_obj(fb,
+-					 plane_state->base.rotation,
++					 &plane_state->view,
+ 					 intel_plane_uses_fence(plane_state),
+ 					 &plane_state->flags);
+ 	if (IS_ERR(vma))
+diff --git a/drivers/gpu/drm/i915/intel_drv.h b/drivers/gpu/drm/i915/intel_drv.h
+index b9656334cd12..ac832c6e2ca6 100644
+--- a/drivers/gpu/drm/i915/intel_drv.h
++++ b/drivers/gpu/drm/i915/intel_drv.h
+@@ -498,6 +498,7 @@ struct intel_atomic_state {
+ 
+ struct intel_plane_state {
+ 	struct drm_plane_state base;
++	struct i915_ggtt_view view;
+ 	struct i915_vma *vma;
+ 	unsigned long flags;
+ #define PLANE_HAS_FENCE BIT(0)
+@@ -1542,7 +1543,7 @@ void intel_release_load_detect_pipe(struct drm_connector *connector,
+ 				    struct drm_modeset_acquire_ctx *ctx);
+ struct i915_vma *
+ intel_pin_and_fence_fb_obj(struct drm_framebuffer *fb,
+-			   unsigned int rotation,
++			   const struct i915_ggtt_view *view,
+ 			   bool uses_fence,
+ 			   unsigned long *out_flags);
+ void intel_unpin_fb_vma(struct i915_vma *vma, unsigned long flags);
+diff --git a/drivers/gpu/drm/i915/intel_fbdev.c b/drivers/gpu/drm/i915/intel_fbdev.c
+index e9e02b58b7be..f7dae7713355 100644
+--- a/drivers/gpu/drm/i915/intel_fbdev.c
++++ b/drivers/gpu/drm/i915/intel_fbdev.c
+@@ -175,6 +175,9 @@ static int intelfb_create(struct drm_fb_helper *helper,
+ 	struct drm_i915_private *dev_priv = to_i915(dev);
+ 	struct pci_dev *pdev = dev_priv->drm.pdev;
+ 	struct i915_ggtt *ggtt = &dev_priv->ggtt;
++	const struct i915_ggtt_view view = {
++		.type = I915_GGTT_VIEW_NORMAL,
++	};
+ 	struct fb_info *info;
+ 	struct drm_framebuffer *fb;
+ 	struct i915_vma *vma;
+@@ -214,8 +217,7 @@ static int intelfb_create(struct drm_fb_helper *helper,
+ 	 * BIOS is suitable for own access.
+ 	 */
+ 	vma = intel_pin_and_fence_fb_obj(&ifbdev->fb->base,
+-					 DRM_MODE_ROTATE_0,
+-					 false, &flags);
++					 &view, false, &flags);
+ 	if (IS_ERR(vma)) {
+ 		ret = PTR_ERR(vma);
+ 		goto out_unlock;
+-- 
+2.17.1
+
