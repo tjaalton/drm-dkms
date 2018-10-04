@@ -16,10 +16,12 @@ LINUXINCLUDE += -I$(KBUILD_EXTMOD)/drivers/gpu/drm/amd/include
 ccflags-y    := -Iinclude/drm
 
 intel_ips-y := $(patsubst %,drivers/platform/x86/%.o,intel_ips)
+backport-y  := $(patsubst %,drivers/%.o,backport)
 
 obj-$(CONFIG_INTEL_IPS)          += intel_ips.o
+obj-m	+= backport.o
 
-BUILD_MODULES  := intel_ips.o
+BUILD_MODULES  := intel_ips.o backport.o
 
 obj-m := $(BUILD_MODULES)
 obj-m += drivers/gpu/drm/
