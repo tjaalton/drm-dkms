@@ -22,7 +22,7 @@ PACKAGE = $pdkms
 
 build: patch
 
-DRM_FILES=Kconfig Makefile ati_pcigart.c drm_* amd i2c bridge i915 nouveau panel radeon ttm
+DRM_FILES=Kconfig Makefile ati_pcigart.c drm_* amd i2c bridge i915 nouveau panel radeon scheduler ttm
 
 sync-kernel:
 	for i in $(DRM_FILES); do \
