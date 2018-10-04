@@ -2,12 +2,11 @@
 
 set -e
 
-_module=i915;
-_k_from=4.18;
+_module=drm;
 _k_to=4.15;
 
-package=$_module-$_k_from-$_k_to-dkms;
-name=$_module-$_k_from-$_k_to;
+package=$_module-$_k_to-dkms;
+name=$_module-$_k_to;
 
 kernel_list=;
 kernel_fields='${status} ${package} ${source} ${version} ${architecture}\n';

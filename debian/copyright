@@ -1,5 +1,5 @@
 Format-Specification: http://dep.debian.net/deps/dep5/
-Name: i915-4.18-4.15
+Name: drm-4.15
 
 Files: *
 Copyright: 2011 Linus Torvalds and others.
