@@ -1,0 +1,75 @@
+--- a/drivers/gpu/drm/i915/intel_gvt.h
++++ b/drivers/gpu/drm/i915/intel_gvt.h
+@@ -26,14 +26,6 @@
+ 
+ struct intel_gvt;
+ 
+-#ifdef CONFIG_DRM_I915_GVT
+-int intel_gvt_init(struct drm_i915_private *dev_priv);
+-void intel_gvt_cleanup(struct drm_i915_private *dev_priv);
+-int intel_gvt_init_device(struct drm_i915_private *dev_priv);
+-void intel_gvt_clean_device(struct drm_i915_private *dev_priv);
+-int intel_gvt_init_host(void);
+-void intel_gvt_sanitize_options(struct drm_i915_private *dev_priv);
+-#else
+ static inline int intel_gvt_init(struct drm_i915_private *dev_priv)
+ {
+ 	return 0;
+@@ -45,6 +37,5 @@ static inline void intel_gvt_cleanup(str
+ static inline void intel_gvt_sanitize_options(struct drm_i915_private *dev_priv)
+ {
+ }
+-#endif
+ 
+ #endif /* _INTEL_GVT_H_ */
+--- a/drivers/gpu/drm/i915/intel_lrc.c
++++ b/drivers/gpu/drm/i915/intel_lrc.c
+@@ -372,7 +372,7 @@ execlists_context_status_change(struct i
+ 	 * Only used when GVT-g is enabled now. When GVT-g is disabled,
+ 	 * The compiler should eliminate this function as dead-code.
+ 	 */
+-	if (!IS_ENABLED(CONFIG_DRM_I915_GVT))
++//	if (!IS_ENABLED(CONFIG_DRM_I915_GVT))
+ 		return;
+ 
+ 	atomic_notifier_call_chain(&rq->engine->context_status_notifier,
+@@ -497,8 +497,9 @@ static void execlists_submit_ports(struc
+ 
+ static bool ctx_single_port_submission(const struct i915_gem_context *ctx)
+ {
+-	return (IS_ENABLED(CONFIG_DRM_I915_GVT) &&
+-		i915_gem_context_force_single_submission(ctx));
++	return false;
++//	return (IS_ENABLED(CONFIG_DRM_I915_GVT) &&
++//		i915_gem_context_force_single_submission(ctx));
+ }
+ 
+ static bool can_merge_ctx(const struct i915_gem_context *prev,
+--- a/drivers/gpu/drm/i915/Makefile
++++ b/drivers/gpu/drm/i915/Makefile
+@@ -181,10 +181,10 @@ i915-y += i915_perf.o \
+ 	  i915_oa_cnl.o \
+ 	  i915_oa_icl.o
+ 
+-ifeq ($(CONFIG_DRM_I915_GVT),y)
+-i915-y += intel_gvt.o
+-include $(src)/gvt/Makefile
+-endif
++#ifeq ($(CONFIG_DRM_I915_GVT),y)
++#i915-y += intel_gvt.o
++#include $(src)/gvt/Makefile
++#endif
+ 
+ # LPE Audio for VLV and CHT
+ i915-y += intel_lpe_audio.o
+--- a/drivers/gpu/drm/i915/i915_gem_context.c
++++ b/drivers/gpu/drm/i915/i915_gem_context.c
+@@ -397,7 +397,7 @@ i915_gem_context_create_gvt(struct drm_d
+ 	struct i915_gem_context *ctx;
+ 	int ret;
+ 
+-	if (!IS_ENABLED(CONFIG_DRM_I915_GVT))
++//	if (!IS_ENABLED(CONFIG_DRM_I915_GVT))
+ 		return ERR_PTR(-ENODEV);
+ 
+ 	ret = i915_mutex_lock_interruptible(dev);
