@@ -1,28 +1,33 @@
 --- a/drivers/gpu/drm/Makefile
 +++ b/drivers/gpu/drm/Makefile
-@@ -39,50 +39,50 @@ obj-$(CONFIG_DRM_KMS_HELPER) += drm_kms_
- CFLAGS_drm_trace_points.o := -I$(src)
+@@ -46,62 +46,62 @@ obj-$(CONFIG_DRM_KMS_HELPER) += drm_kms_
+ obj-$(CONFIG_DRM_DEBUG_SELFTEST) += selftests/
  
  obj-$(CONFIG_DRM)	+= drm.o
 -obj-$(CONFIG_DRM_MIPI_DSI) += drm_mipi_dsi.o
+-obj-$(CONFIG_DRM_PANEL_ORIENTATION_QUIRKS) += drm_panel_orientation_quirks.o
 -obj-$(CONFIG_DRM_ARM)	+= arm/
 +#obj-$(CONFIG_DRM_MIPI_DSI) += drm_mipi_dsi.o
++obj-y += drm_panel_orientation_quirks.o
 +#obj-$(CONFIG_DRM_ARM)	+= arm/
  obj-$(CONFIG_DRM_TTM)	+= ttm/
+-obj-$(CONFIG_DRM_SCHED)	+= scheduler/
 -obj-$(CONFIG_DRM_TDFX)	+= tdfx/
 -obj-$(CONFIG_DRM_R128)	+= r128/
--obj-$(CONFIG_HSA_AMD) += amd/amdkfd/
++#obj-$(CONFIG_DRM_SCHED)	+= scheduler/
 +#obj-$(CONFIG_DRM_TDFX)	+= tdfx/
 +#obj-$(CONFIG_DRM_R128)	+= r128/
-+#obj-$(CONFIG_HSA_AMD) += amd/amdkfd/
+ obj-y			+= amd/lib/
+ obj-$(CONFIG_HSA_AMD) += amd/amdkfd/
  obj-$(CONFIG_DRM_RADEON)+= radeon/
  obj-$(CONFIG_DRM_AMDGPU)+= amd/amdgpu/
 -obj-$(CONFIG_DRM_MGA)	+= mga/
 -obj-$(CONFIG_DRM_I810)	+= i810/
 +#obj-$(CONFIG_DRM_MGA)	+= mga/
 +#obj-$(CONFIG_DRM_I810)	+= i810/
- obj-$(CONFIG_DRM_I915)  += i915/
+ obj-$(CONFIG_DRM_I915)	+= i915/
 -obj-$(CONFIG_DRM_MGAG200) += mgag200/
+-obj-$(CONFIG_DRM_V3D)  += v3d/
 -obj-$(CONFIG_DRM_VC4)  += vc4/
 -obj-$(CONFIG_DRM_CIRRUS_QEMU) += cirrus/
 -obj-$(CONFIG_DRM_SIS)   += sis/
@@ -48,9 +53,11 @@
 -obj-$(CONFIG_DRM_VIRTIO_GPU) += virtio/
 -obj-$(CONFIG_DRM_MSM) += msm/
 -obj-$(CONFIG_DRM_TEGRA) += tegra/
+-obj-$(CONFIG_DRM_STM) += stm/
 -obj-$(CONFIG_DRM_STI) += sti/
 -obj-$(CONFIG_DRM_IMX) += imx/
 -obj-$(CONFIG_DRM_MEDIATEK) += mediatek/
+-obj-$(CONFIG_DRM_MESON)	+= meson/
 -obj-y			+= i2c/
 -obj-y			+= panel/
 -obj-y			+= bridge/
@@ -58,7 +65,14 @@
 -obj-$(CONFIG_DRM_ETNAVIV) += etnaviv/
 -obj-$(CONFIG_DRM_ARCPGU)+= arc/
 -obj-y			+= hisilicon/
+-obj-$(CONFIG_DRM_ZTE)	+= zte/
+-obj-$(CONFIG_DRM_MXSFB)	+= mxsfb/
+-obj-$(CONFIG_DRM_TINYDRM) += tinydrm/
+-obj-$(CONFIG_DRM_PL111) += pl111/
+-obj-$(CONFIG_DRM_TVE200) += tve200/
+-obj-$(CONFIG_DRM_XEN) += xen/
 +#obj-$(CONFIG_DRM_MGAG200) += mgag200/
++#obj-$(CONFIG_DRM_V3D)  += v3d/
 +#obj-$(CONFIG_DRM_VC4)  += vc4/
 +#obj-$(CONFIG_DRM_CIRRUS_QEMU) += cirrus/
 +#obj-$(CONFIG_DRM_SIS)   += sis/
@@ -84,9 +98,11 @@
 +#obj-$(CONFIG_DRM_VIRTIO_GPU) += virtio/
 +#obj-$(CONFIG_DRM_MSM) += msm/
 +#obj-$(CONFIG_DRM_TEGRA) += tegra/
++#obj-$(CONFIG_DRM_STM) += stm/
 +#obj-$(CONFIG_DRM_STI) += sti/
 +#obj-$(CONFIG_DRM_IMX) += imx/
 +#obj-$(CONFIG_DRM_MEDIATEK) += mediatek/
++#obj-$(CONFIG_DRM_MESON)	+= meson/
 +#obj-y			+= i2c/
 +#obj-y			+= panel/
 +#obj-y			+= bridge/
@@ -94,3 +110,9 @@
 +#obj-$(CONFIG_DRM_ETNAVIV) += etnaviv/
 +#obj-$(CONFIG_DRM_ARCPGU)+= arc/
 +#obj-y			+= hisilicon/
++#obj-$(CONFIG_DRM_ZTE)	+= zte/
++#obj-$(CONFIG_DRM_MXSFB)	+= mxsfb/
++#obj-$(CONFIG_DRM_TINYDRM) += tinydrm/
++#obj-$(CONFIG_DRM_PL111) += pl111/
++#obj-$(CONFIG_DRM_TVE200) += tve200/
++#obj-$(CONFIG_DRM_XEN) += xen/

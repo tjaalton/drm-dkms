@@ -1,63 +1,7 @@
-backport.patch
+#backport.patch
+drm-trim-build.diff
 # core drm
-0001-Revert-i2c-move-locking-operations-to-their-own-stru.patch
-0001-Revert-drm-Pass-the-drm_dp_aux-hw_mutex-to-i2c-for-i.patch
-0001-Revert-drm-edid-convert-to-use-match_string-helper.patch
-0001-Revert-drm-edid-Switch-DDC-when-reading-the-EDID.patch 
 
 # amdgpu
-0001-Revert-mm-replace-get_user_pages-write-force-paramet.patch
-0001-SAUCE-amdgpu-Use-old-get_user_pages.patch
-0001-Revert-drm-drivers-add-support-for-using-the-arch-wc.patch
-0001-Revert-dma-buf-fence-make-fence-context-64-bit-v2.patch
-SAUCE-add-fence-array.diff
-0001-Revert-drm-amdgpu-fix-check-for-port-PM-availability.patch
-0002-Revert-drm-amdgpu-fix-power-state-when-port-pm-is-un.patch
-48-ttm-revert-conversion-to-pfn-t.diff
-0001-Revert-vga_switcheroo-Add-handler-flags-infrastructu.patch
-0001-Revert-drm-amdgpu-make-amdgpu_mn_get-wait-for-mmap_s.patch
 
 # i915
-0001-Revert-drm-i915-Embed-the-io-mapping-struct-inside-d.patch
-0001-Revert-drm-i915-Prevent-the-system-suspend-complete-.patch
-0002-Revert-drm-Remove-dev_pm_ops-from-drm_class.patch
-0001-Revert-drm-i915-Use-remap_io_mapping-to-prefault-all.patch
-SAUCE-backport-reservation-stuff.diff
-0001-SAUCE-use-to_user_ptr.patch
-0001-Revert-drm-i915-Use-atomic-for-dev_priv-mm.bsd_engin.patch
-0001-Revert-drm-i915-make-i915_gem_mmap_ioctl-wait-for-mm.patch
-0001-SAUCE-use-get_user_pages-still.patch
-0001-Revert-drm-i915-Explicitly-apply-PWM-config-extracte.patch
-
-0001-Revert-drm-i915-Fallback-to-single-page-GTT-mmapping.patch
-
-0001-Revert-drm-i915-Support-for-pread-pwrite-from-to-non.patch
-0002-Revert-drm-i915-Use-insert_page-for-pwrite_fast.patch
-0003-Revert-drm-i915-Add-support-for-mapping-an-object-pa.patch
-0001-SAUCE-i915-use-vma-put-fence.patch
-0001-Revert-dma-buf-drm-ion-Propagate-error-code-from-dma.patch
-
-48-Revert-drm-i915-Defer-probe-if-gmux-is-present-but-i.patch
-48-Revert-drm-i915-Switch-DDC-when-reading-the-EDID.patch
-
-#48-Revert-drm-i915-Implement-end_cpu_access.patch
-#48-Revert-drm-i915-pwrite-pread-do-not-require-obj-base.patch
-#48-Revert-drm-i915-Add-missing-rpm-wakelock-to-GGTT-pre.patch
-#48-Revert-drm-i915-shrinker-Hook-up-vmap-allocation-fai.patch
-#48-Revert-drm-Pass-the-drm_dp_aux-hw_mutex-to-i2c-for-i.patch
-#48-Revert-drm-edid-convert-to-use-match_string-helper.patch
-
-48-radeon-revert-switcheroo-changes.diff
-48-radeon-use-old-get_user_pages.diff
-48-Revert-drm-radeon-make-radeon_mn_get-wait-for-mmap_s.patch
-##48-radeon-revert-ttm-api-change.patch
-#48-revert-dma-buf-remove-range-based-flush.diff
-#48-Revert-dma-buf-drm-ion-Propagate-error-code-from-dma.patch
-48-Revert-drm-radeon-fix-check-for-port-PM-availability.patch
-48-Revert-drm-radeon-fix-power-state-when-port-pm-is-un.patch
-
-rename-to-i915-bpo.diff
-use-bpo-io-mapping.diff
-SAUCE-i915_bpo-Add-i915_bpo_-calls-for-i915.patch
-drm-trim-build.diff
-SAUCE-i915-drop-some-warns.diff
