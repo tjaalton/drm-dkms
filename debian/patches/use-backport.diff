@@ -1,0 +1,11 @@
+--- a/include/drm/ttm/ttm_bo_driver.h
++++ b/include/drm/ttm/ttm_bo_driver.h
+@@ -44,6 +44,8 @@
+ #include "ttm_placement.h"
+ #include "ttm_tt.h"
+ 
++#include <backport.h>
++
+ #define TTM_MAX_BO_PRIORITY	4U
+ 
+ #define TTM_MEMTYPE_FLAG_FIXED         (1 << 0)	/* Fixed (on-card) PCI memory */

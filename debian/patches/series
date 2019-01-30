@@ -50,3 +50,5 @@ add-filp-clone-open.diff
 0030-drm-i915-Check-timings-against-hardware-maximums.patch
 0031-drm-i915-Bump-gen7-fb-size-limits-to-16kx16k.patch
 0032-drm-fourcc-Add-is_yuv-field-to-drm_format_info-to-de.patch
+use-backport.diff
+amdgpu-use-bpo-reservation.diff
