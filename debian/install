@@ -1,0 +1,5 @@
+#!/bin/sh
+
+for dir in drivers include Makefile; do
+    echo ${dir} /usr/src/${PACKAGE_NAME}-${PACKAGE_VERSION}
+done

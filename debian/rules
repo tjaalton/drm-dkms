@@ -1,26 +1,16 @@
 #!/usr/bin/make -f
 
-# Uncomment this to turn on verbose mode.
-#export DH_VERBOSE=1
+PACKAGE_NAME=$(shell grep PACKAGE_NAME= debian/dkms.conf | cut -d= -f2 | cut -d\" -f2)
+PACKAGE_VERSION=$(shell grep PACKAGE_VERSION= debian/dkms.conf | cut -d= -f2 | cut -d\" -f2)
+export PACKAGE_NAME PACKAGE_VERSION
 
-include /usr/share/quilt/quilt.make
+%:
+	dh $@ --with dkms
 
-source = $(shell dpkg-parsechangelog | grep "^Source:" | sed 's/Source: //')
-# some default definitions, important!
-#
-# Name of the source package
-#psource := $(source)-source
-pdkms   := $(source)-dkms
-sname   := $(source)
-sversion:=$(shell dpkg-parsechangelog|grep "^Version:"|cut -d" " -f2|rev|cut -d- -f2-|rev|cut -d':' -f2)
+override_dh_auto_configure:
+override_dh_auto_build:
+override_dh_auto_install:
 
-### KERNEL SETUP
-
-# prefix of the target package name
-PACKAGE = $pdkms
-### end  KERNEL SETUP
-
-build: patch
 
 DRM_FILES=Kconfig Makefile ati_pcigart.c drm_* amd i2c bridge i915 nouveau panel radeon scheduler ttm
 
@@ -37,40 +27,3 @@ sync-kernel:
 	cp -r ../linux.git/include/drm include
 	cp -r ../linux.git/include/uapi/drm include/uapi
 	git add drivers/ include
-
-clean: clean-patched unpatch
-clean-patched:
-	dh_testdir
-	dh_clean
-
-install: DH_OPTIONS=
-install: build
-	dh_testdir
-	dh_testroot
-	dh_clean -k
-	dh_installdirs
-	# Create the directories to install the source into
-	dh_installdirs -p$(pdkms)  usr/src/$(sname)-$(sversion)
-	cp -a Makefile include drivers debian/$(pdkms)/usr/src/$(sname)-$(sversion)
-	# Prepare dkms.conf from the dkms.conf.in template
-	sed "s/__VERSION__/$(sversion)/g" debian/dkms.conf.in > debian/$(pdkms)/usr/src/$(sname)-$(sversion)/dkms.conf
-	dh_install
-
-binary-arch: build install
-
-binary-indep: build install
-	dh_testdir
-	dh_testroot
-	dh_installchangelogs
-	dh_install
-	dh_modaliases
-	dh_link
-	dh_compress
-	dh_fixperms
-	dh_installdeb
-	dh_gencontrol
-	dh_md5sums
-	dh_builddeb
-
-binary: binary-indep binary-arch
-.PHONY: build clean binary-indep binary-arch binary install
