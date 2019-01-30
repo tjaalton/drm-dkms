@@ -17,38 +17,5 @@ Revert-the-rest-of-drivers-annotate-poll-instances.patch
 add-filp-clone-open.diff
 # -> 4.18.12 builds
 
-# 3x4k support
-0001-drm-i915-s-tile_offset-aligned_offset-etc.patch
-0002-drm-i915-Promote-.format_mod_supported-to-the-lead-r.patch
-0003-drm-i915-Add-.max_stride-plane-hook.patch
-0004-drm-i915-Use-pipe-A-primary-plane-.max_stride-as-the.patch
-0005-drm-i915-Rename-the-plane_state-main-aux-to-plane_st.patch
-0006-drm-i915-Store-the-final-plane-stride-in-plane_state.patch
-0007-drm-i915-Store-ggtt_view-in-plane_state.patch
-0008-drm-i915-s-int-plane-int-color_plane.patch
-0009-drm-i915-Nuke-plane-can_scale-min_downscale.patch
-0010-drm-i915-Have-plane-get_hw_state-return-the-current-.patch
-0011-drm-i915-Don-t-pass-plane-to-.check_plane.patch
-0012-drm-i915-Substitute-intel_format_is_yuv-with-format-.patch
-0013-drm-i915-Extract-per-platform-plane-check-functions.patch
-0014-drm-i915-Reject-compressed-Y-Yf-with-interlaced-mode.patch
-0015-drm-i915-Move-skl-plane-fb-related-checks-into-a-bet.patch
-0016-drm-i915-Fix-glk-cnl-display-w-a-1175.patch
-0017-drm-i915-Move-display-w-a-1175.patch
-0018-drm-i915-Move-chv-rotation-checks-to-plane-check.patch
-0019-drm-i915-Extract-intel_cursor_check_surface.patch
-0020-drm-i915-Make-sure-fb-gtt-offsets-stay-within-32bits.patch
-0021-drm-i915-Decouple-SKL-stride-units-from-intel_fb_str.patch
-0022-drm-i915-Fix-gtt_view-asserts.patch
-0023-drm-i915-Add-a-new-remapped-gtt_view.patch
-0024-drm-i915-selftests-Add-mock-selftest-for-remapped-vm.patch
-0025-drm-i915-selftests-Add-live-vma-selftest.patch
-0026-drm-i915-Add-a-small-wrapper-to-check-for-CCS-modifi.patch
-0027-drm-i915-Check-fb-stride-against-plane-max-stride.patch
-0028-drm-i915-Overcome-display-engine-stride-limits-via-G.patch
-0029-drm-i915-Bump-gen4-fb-stride-limit-to-256KiB.patch
-0030-drm-i915-Check-timings-against-hardware-maximums.patch
-0031-drm-i915-Bump-gen7-fb-size-limits-to-16kx16k.patch
-0032-drm-fourcc-Add-is_yuv-field-to-drm_format_info-to-de.patch
 use-backport.diff
 amdgpu-use-bpo-reservation.diff
