@@ -1,5 +1,5 @@
-drm-4.15 (4.18.12-0.1) UNRELEASED; urgency=medium
+drm-4.15 (5.0~rc4-1) UNRELEASED; urgency=medium
 
-  * drm from 4.18.12.
+  * drm from 5.0~rc4.
 
  -- Timo Aaltonen <tjaalton@debian.org>  Thu, 04 Oct 2018 14:52:24 +0300
