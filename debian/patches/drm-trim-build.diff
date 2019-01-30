@@ -1,7 +1,7 @@
 --- a/drivers/gpu/drm/Makefile
 +++ b/drivers/gpu/drm/Makefile
-@@ -43,65 +43,65 @@ drm_kms_helper-$(CONFIG_DRM_KMS_CMA_HELP
- drm_kms_helper-$(CONFIG_DRM_DP_AUX_CHARDEV) += drm_dp_aux_dev.o
+@@ -46,66 +46,66 @@ drm_kms_helper-$(CONFIG_DRM_DP_AUX_CHARD
+ drm_kms_helper-$(CONFIG_DRM_DP_CEC) += drm_dp_cec.o
  
  obj-$(CONFIG_DRM_KMS_HELPER) += drm_kms_helper.o
 -obj-$(CONFIG_DRM_DEBUG_SELFTEST) += selftests/
@@ -41,6 +41,7 @@
 -obj-$(CONFIG_DRM_VMWGFX)+= vmwgfx/
 -obj-$(CONFIG_DRM_VIA)	+=via/
 -obj-$(CONFIG_DRM_VGEM)	+= vgem/
+-obj-$(CONFIG_DRM_VKMS)	+= vkms/
 -obj-$(CONFIG_DRM_NOUVEAU) +=nouveau/
 -obj-$(CONFIG_DRM_EXYNOS) +=exynos/
 -obj-$(CONFIG_DRM_ROCKCHIP) +=rockchip/
@@ -86,6 +87,7 @@
 +#obj-$(CONFIG_DRM_VMWGFX)+= vmwgfx/
 +#obj-$(CONFIG_DRM_VIA)	+=via/
 +#obj-$(CONFIG_DRM_VGEM)	+= vgem/
++#obj-$(CONFIG_DRM_VKMS)	+= vkms/
 +#obj-$(CONFIG_DRM_NOUVEAU) +=nouveau/
 +#obj-$(CONFIG_DRM_EXYNOS) +=exynos/
 +#obj-$(CONFIG_DRM_ROCKCHIP) +=rockchip/

@@ -313,7 +313,7 @@ This reverts commit a9a08845e9acbd224e4ee466f5c1275ed50054e8.
 
 --- a/drivers/gpu/drm/drm_file.c
 +++ b/drivers/gpu/drm/drm_file.c
-@@ -568,7 +568,7 @@ unsigned int drm_poll(struct file *filp,
+@@ -612,7 +612,7 @@ unsigned int drm_poll(struct file *filp,
  	poll_wait(filp, &file_priv->event_wait, wait);
  
  	if (!list_empty(&file_priv->event_list))
@@ -324,7 +324,7 @@ This reverts commit a9a08845e9acbd224e4ee466f5c1275ed50054e8.
  }
 --- a/drivers/gpu/drm/i915/i915_perf.c
 +++ b/drivers/gpu/drm/i915/i915_perf.c
-@@ -245,7 +245,7 @@
+@@ -246,7 +246,7 @@
   * The two separate pointers let us decouple read()s from tail pointer aging.
   *
   * The tail pointers are checked and updated at a limited rate within a hrtimer
@@ -333,7 +333,7 @@ This reverts commit a9a08845e9acbd224e4ee466f5c1275ed50054e8.
   *
   * Initially the tails are marked invalid with %INVALID_TAIL_PTR which
   * indicates that an updated tail pointer is needed.
-@@ -2286,13 +2286,13 @@ static ssize_t i915_perf_read(struct fil
+@@ -2247,13 +2247,13 @@ static ssize_t i915_perf_read(struct fil
  		mutex_unlock(&dev_priv->perf.lock);
  	}
  
@@ -350,7 +350,7 @@ This reverts commit a9a08845e9acbd224e4ee466f5c1275ed50054e8.
  	 */
  	if (ret >= 0 || ret == -EAGAIN) {
  		/* Maybe make ->pollin per-stream state if we support multiple
-@@ -2352,7 +2352,7 @@ static unsigned int i915_perf_poll_locke
+@@ -2313,7 +2313,7 @@ static unsigned int i915_perf_poll_locke
  	 * samples to read.
  	 */
  	if (dev_priv->perf.oa.pollin)

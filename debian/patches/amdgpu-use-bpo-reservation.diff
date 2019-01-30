@@ -1,7 +1,7 @@
 --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_display.c
 +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_display.c
-@@ -195,7 +195,7 @@ int amdgpu_display_crtc_page_flip_target
- 		goto unreserve;
+@@ -202,7 +202,7 @@ int amdgpu_display_crtc_page_flip_target
+ 		goto unpin;
  	}
  
 -	r = reservation_object_get_fences_rcu(new_abo->tbo.resv, &work->excl,
@@ -22,7 +22,7 @@
  
 --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_vm.c
 +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_vm.c
-@@ -1716,7 +1716,7 @@ static void amdgpu_vm_prt_fini(struct am
+@@ -2198,7 +2198,7 @@ static void amdgpu_vm_prt_fini(struct am
  	unsigned i, shared_count;
  	int r;
  

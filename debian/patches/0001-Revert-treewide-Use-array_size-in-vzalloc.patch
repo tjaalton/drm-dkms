@@ -73,7 +73,7 @@ This reverts commit fad953ce0b22cfd352a9a90b070c34b8791e6868.
 
 --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_gart.c
 +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_gart.c
-@@ -369,8 +369,7 @@ int amdgpu_gart_init(struct amdgpu_devic
+@@ -368,8 +368,7 @@ int amdgpu_gart_init(struct amdgpu_devic
  
  #ifdef CONFIG_DRM_AMDGPU_GART_DEBUGFS
  	/* Allocate pages table */
@@ -96,7 +96,7 @@ This reverts commit fad953ce0b22cfd352a9a90b070c34b8791e6868.
  		return -ENOMEM;
 --- a/drivers/gpu/drm/i915/gvt/gtt.c
 +++ b/drivers/gpu/drm/i915/gvt/gtt.c
-@@ -1585,9 +1585,8 @@ static struct intel_vgpu_mm *intel_vgpu_
+@@ -1898,9 +1898,8 @@ static struct intel_vgpu_mm *intel_vgpu_
  	mm->type = INTEL_GVT_MM_GGTT;
  
  	nr_entries = gvt_ggtt_gm_sz(vgpu->gvt) >> I915_GTT_PAGE_SHIFT;
@@ -110,7 +110,7 @@ This reverts commit fad953ce0b22cfd352a9a90b070c34b8791e6868.
  		return ERR_PTR(-ENOMEM);
 --- a/drivers/gpu/drm/i915/gvt/mmio.c
 +++ b/drivers/gpu/drm/i915/gvt/mmio.c
-@@ -267,7 +267,7 @@ int intel_vgpu_init_mmio(struct intel_vg
+@@ -296,7 +296,7 @@ int intel_vgpu_init_mmio(struct intel_vg
  {
  	const struct intel_gvt_device_info *info = &vgpu->gvt->device_info;
  

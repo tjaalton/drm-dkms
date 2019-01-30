@@ -1,6 +1,6 @@
 --- a/include/drm/ttm/ttm_bo_driver.h
 +++ b/include/drm/ttm/ttm_bo_driver.h
-@@ -44,6 +44,8 @@
+@@ -43,6 +43,8 @@
  #include "ttm_placement.h"
  #include "ttm_tt.h"
  

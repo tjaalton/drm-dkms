@@ -155,7 +155,7 @@ This reverts commit afc9a42b7464f76e1388cad87d8543c69f6f74ed.
 
 --- a/drivers/gpu/drm/drm_file.c
 +++ b/drivers/gpu/drm/drm_file.c
-@@ -560,10 +560,10 @@ EXPORT_SYMBOL(drm_read);
+@@ -604,10 +604,10 @@ EXPORT_SYMBOL(drm_read);
   *
   * Mask of POLL flags indicating the current status of the file.
   */
@@ -170,7 +170,7 @@ This reverts commit afc9a42b7464f76e1388cad87d8543c69f6f74ed.
  
 --- a/drivers/gpu/drm/i915/i915_perf.c
 +++ b/drivers/gpu/drm/i915/i915_perf.c
-@@ -2336,12 +2336,12 @@ static enum hrtimer_restart oa_poll_chec
+@@ -2297,12 +2297,12 @@ static enum hrtimer_restart oa_poll_chec
   *
   * Returns: any poll events that are ready without sleeping
   */
@@ -185,7 +185,7 @@ This reverts commit afc9a42b7464f76e1388cad87d8543c69f6f74ed.
  
  	stream->ops->poll_wait(stream, file, wait);
  
-@@ -2370,11 +2370,11 @@ static __poll_t i915_perf_poll_locked(st
+@@ -2331,11 +2331,11 @@ static __poll_t i915_perf_poll_locked(st
   *
   * Returns: any poll events that are ready without sleeping
   */
@@ -201,7 +201,7 @@ This reverts commit afc9a42b7464f76e1388cad87d8543c69f6f74ed.
  	ret = i915_perf_poll_locked(dev_priv, stream, file, wait);
 --- a/include/drm/drm_file.h
 +++ b/include/drm/drm_file.h
-@@ -363,7 +363,7 @@ int drm_open(struct inode *inode, struct
+@@ -370,7 +370,7 @@ int drm_open(struct inode *inode, struct
  ssize_t drm_read(struct file *filp, char __user *buffer,
  		 size_t count, loff_t *offset);
  int drm_release(struct inode *inode, struct file *filp);

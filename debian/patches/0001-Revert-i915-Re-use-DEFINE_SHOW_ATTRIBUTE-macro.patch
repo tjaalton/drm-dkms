@@ -9,11 +9,9 @@ This reverts commit e4006713d16567c203ba710f6a2b709ed6107db5.
  drivers/gpu/drm/i915/i915_debugfs.c | 76 ++++++++++++++++++++++++-----
  2 files changed, 77 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/gpu/drm/i915/gvt/debugfs.c b/drivers/gpu/drm/i915/gvt/debugfs.c
-index 2ec89bcb59f1..4cc2f5f3ba96 100644
 --- a/drivers/gpu/drm/i915/gvt/debugfs.c
 +++ b/drivers/gpu/drm/i915/gvt/debugfs.c
-@@ -122,7 +122,18 @@ static int vgpu_mmio_diff_show(struct seq_file *s, void *unused)
+@@ -122,7 +122,18 @@ static int vgpu_mmio_diff_show(struct se
  	seq_printf(s, "Total: %d, Diff: %d\n", param.total, param.diff);
  	return 0;
  }
@@ -33,11 +31,9 @@ index 2ec89bcb59f1..4cc2f5f3ba96 100644
  
  static int
  vgpu_scan_nonprivbb_get(void *data, u64 *val)
-diff --git a/drivers/gpu/drm/i915/i915_debugfs.c b/drivers/gpu/drm/i915/i915_debugfs.c
-index 13e7b9e4a6e6..8520f648205d 100644
 --- a/drivers/gpu/drm/i915/i915_debugfs.c
 +++ b/drivers/gpu/drm/i915/i915_debugfs.c
-@@ -3704,8 +3704,7 @@ static ssize_t i915_displayport_test_active_write(struct file *file,
+@@ -3675,8 +3675,7 @@ static ssize_t i915_displayport_test_act
  
  static int i915_displayport_test_active_show(struct seq_file *m, void *data)
  {
@@ -47,7 +43,7 @@ index 13e7b9e4a6e6..8520f648205d 100644
  	struct drm_connector *connector;
  	struct drm_connector_list_iter conn_iter;
  	struct intel_dp *intel_dp;
-@@ -3739,8 +3738,10 @@ static int i915_displayport_test_active_show(struct seq_file *m, void *data)
+@@ -3710,8 +3709,10 @@ static int i915_displayport_test_active_
  static int i915_displayport_test_active_open(struct inode *inode,
  					     struct file *file)
  {
@@ -59,7 +55,7 @@ index 13e7b9e4a6e6..8520f648205d 100644
  }
  
  static const struct file_operations i915_displayport_test_active_fops = {
-@@ -3754,8 +3755,7 @@ static const struct file_operations i915_displayport_test_active_fops = {
+@@ -3725,8 +3726,7 @@ static const struct file_operations i915
  
  static int i915_displayport_test_data_show(struct seq_file *m, void *data)
  {
@@ -69,7 +65,7 @@ index 13e7b9e4a6e6..8520f648205d 100644
  	struct drm_connector *connector;
  	struct drm_connector_list_iter conn_iter;
  	struct intel_dp *intel_dp;
-@@ -3794,12 +3794,26 @@ static int i915_displayport_test_data_show(struct seq_file *m, void *data)
+@@ -3765,12 +3765,26 @@ static int i915_displayport_test_data_sh
  
  	return 0;
  }
@@ -99,7 +95,7 @@ index 13e7b9e4a6e6..8520f648205d 100644
  	struct drm_connector *connector;
  	struct drm_connector_list_iter conn_iter;
  	struct intel_dp *intel_dp;
-@@ -3826,7 +3840,23 @@ static int i915_displayport_test_type_show(struct seq_file *m, void *data)
+@@ -3797,7 +3811,23 @@ static int i915_displayport_test_type_sh
  
  	return 0;
  }
@@ -124,7 +120,7 @@ index 13e7b9e4a6e6..8520f648205d 100644
  
  static void wm_latency_show(struct seq_file *m, const uint16_t wm[8])
  {
-@@ -4936,7 +4966,19 @@ static int i915_dpcd_show(struct seq_file *m, void *data)
+@@ -5048,7 +5078,19 @@ static int i915_dpcd_show(struct seq_fil
  
  	return 0;
  }
@@ -145,7 +141,7 @@ index 13e7b9e4a6e6..8520f648205d 100644
  
  static int i915_panel_show(struct seq_file *m, void *data)
  {
-@@ -4958,7 +5000,19 @@ static int i915_panel_show(struct seq_file *m, void *data)
+@@ -5070,7 +5112,19 @@ static int i915_panel_show(struct seq_fi
  
  	return 0;
  }
@@ -164,8 +160,5 @@ index 13e7b9e4a6e6..8520f648205d 100644
 +	.release = single_release,
 +};
  
- /**
-  * i915_debugfs_connector_add - add i915 specific connector debugfs files
--- 
-2.17.1
-
+ static int i915_hdcp_sink_capability_show(struct seq_file *m, void *data)
+ {

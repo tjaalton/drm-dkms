@@ -10,11 +10,9 @@ This reverts commit 8f0cb418393ba8023c1496eb3ab0a2adca8fbaa2.
  include/drm/drm_fb_helper.h     |  8 ---
  2 files changed, 2 insertions(+), 96 deletions(-)
 
-diff --git a/drivers/gpu/drm/drm_fb_helper.c b/drivers/gpu/drm/drm_fb_helper.c
-index 2ee1eaa66188..4b891478fe95 100644
 --- a/drivers/gpu/drm/drm_fb_helper.c
 +++ b/drivers/gpu/drm/drm_fb_helper.c
-@@ -41,7 +41,6 @@
+@@ -42,7 +42,6 @@
  #include <drm/drm_atomic.h>
  #include <drm/drm_atomic_helper.h>
  
@@ -22,7 +20,7 @@ index 2ee1eaa66188..4b891478fe95 100644
  #include "drm_crtc_helper_internal.h"
  
  static bool drm_fbdev_emulation = true;
-@@ -364,7 +363,6 @@ EXPORT_SYMBOL(drm_fb_helper_debug_leave);
+@@ -390,7 +389,6 @@ EXPORT_SYMBOL(drm_fb_helper_debug_leave)
  static int restore_fbdev_mode_atomic(struct drm_fb_helper *fb_helper, bool active)
  {
  	struct drm_device *dev = fb_helper->dev;
@@ -30,16 +28,16 @@ index 2ee1eaa66188..4b891478fe95 100644
  	struct drm_plane *plane;
  	struct drm_atomic_state *state;
  	int i, ret;
-@@ -383,6 +381,8 @@ static int restore_fbdev_mode_atomic(struct drm_fb_helper *fb_helper, bool activ
+@@ -407,6 +405,8 @@ static int restore_fbdev_mode_atomic(str
+ 	state->acquire_ctx = &ctx;
  retry:
- 	plane_mask = 0;
  	drm_for_each_plane(plane, dev) {
 +		struct drm_plane_state *plane_state;
 +
  		plane_state = drm_atomic_get_plane_state(state, plane);
  		if (IS_ERR(plane_state)) {
  			ret = PTR_ERR(plane_state);
-@@ -405,11 +405,6 @@ static int restore_fbdev_mode_atomic(struct drm_fb_helper *fb_helper, bool activ
+@@ -426,11 +426,6 @@ retry:
  
  	for (i = 0; i < fb_helper->crtc_count; i++) {
  		struct drm_mode_set *mode_set = &fb_helper->crtc_info[i].mode_set;
@@ -51,7 +49,7 @@ index 2ee1eaa66188..4b891478fe95 100644
  
  		ret = __drm_atomic_helper_set_config(mode_set, state);
  		if (ret != 0)
-@@ -841,7 +836,6 @@ int drm_fb_helper_init(struct drm_device *dev,
+@@ -882,7 +877,6 @@ int drm_fb_helper_init(struct drm_device
  		if (!fb_helper->crtc_info[i].mode_set.connectors)
  			goto out_free;
  		fb_helper->crtc_info[i].mode_set.num_connectors = 0;
@@ -59,7 +57,7 @@ index 2ee1eaa66188..4b891478fe95 100644
  	}
  
  	i = 0;
-@@ -2422,62 +2416,6 @@ static int drm_pick_crtcs(struct drm_fb_helper *fb_helper,
+@@ -2452,62 +2446,6 @@ static int drm_pick_crtcs(struct drm_fb_
  	return best_score;
  }
  
@@ -122,7 +120,7 @@ index 2ee1eaa66188..4b891478fe95 100644
  static void drm_setup_crtcs(struct drm_fb_helper *fb_helper,
  			    u32 width, u32 height)
  {
-@@ -2537,7 +2475,6 @@ static void drm_setup_crtcs(struct drm_fb_helper *fb_helper,
+@@ -2567,7 +2505,6 @@ static void drm_setup_crtcs(struct drm_f
  		drm_fb_helper_modeset_release(fb_helper,
  					      &fb_helper->crtc_info[i].mode_set);
  
@@ -130,7 +128,7 @@ index 2ee1eaa66188..4b891478fe95 100644
  	drm_fb_helper_for_each_connector(fb_helper, i) {
  		struct drm_display_mode *mode = modes[i];
  		struct drm_fb_helper_crtc *fb_crtc = crtcs[i];
-@@ -2557,7 +2494,6 @@ static void drm_setup_crtcs(struct drm_fb_helper *fb_helper,
+@@ -2587,7 +2524,6 @@ static void drm_setup_crtcs(struct drm_f
  			modeset->mode = drm_mode_duplicate(dev,
  							   fb_crtc->desired_mode);
  			drm_connector_get(connector);
@@ -138,7 +136,7 @@ index 2ee1eaa66188..4b891478fe95 100644
  			modeset->connectors[modeset->num_connectors++] = connector;
  			modeset->x = offset->x;
  			modeset->y = offset->y;
-@@ -2599,28 +2535,6 @@ static void drm_setup_crtcs_fb(struct drm_fb_helper *fb_helper)
+@@ -2629,28 +2565,6 @@ static void drm_setup_crtcs_fb(struct dr
  		}
  	}
  	mutex_unlock(&fb_helper->dev->mode_config.mutex);
@@ -167,11 +165,9 @@ index 2ee1eaa66188..4b891478fe95 100644
  }
  
  /* Note: Drops fb_helper->lock before returning. */
-diff --git a/include/drm/drm_fb_helper.h b/include/drm/drm_fb_helper.h
-index b069433e7fc1..d1e45c832cd5 100644
 --- a/include/drm/drm_fb_helper.h
 +++ b/include/drm/drm_fb_helper.h
-@@ -49,7 +49,6 @@ struct drm_fb_helper_crtc {
+@@ -50,7 +50,6 @@ struct drm_fb_helper_crtc {
  	struct drm_mode_set mode_set;
  	struct drm_display_mode *desired_mode;
  	int x, y;
@@ -179,20 +175,17 @@ index b069433e7fc1..d1e45c832cd5 100644
  };
  
  /**
-@@ -160,13 +159,6 @@ struct drm_fb_helper {
- 	struct drm_fb_helper_crtc *crtc_info;
+@@ -176,13 +175,6 @@ struct drm_fb_helper {
  	int connector_count;
  	int connector_info_alloc_count;
--	/**
+ 	/**
 -	 * @sw_rotations:
 -	 * Bitmask of all rotations requested for panel-orientation which
 -	 * could not be handled in hardware. If only one bit is set
 -	 * fbdev->fbcon_rotate_hint gets set to the requested rotation.
 -	 */
 -	int sw_rotations;
- 	/**
+-	/**
  	 * @connector_info:
  	 *
--- 
-2.17.1
-
+ 	 * Array of per-connector information. Do not iterate directly, but use

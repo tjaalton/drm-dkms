@@ -10,8 +10,6 @@ This reverts commit e86584c5377f4219781492ca164664bce40c0090.
  drivers/gpu/drm/drm_syncobj.c | 2 +-
  2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/gpu/drm/drm_gem.c b/drivers/gpu/drm/drm_gem.c
-index 4a16d7b26c89..c5545843e755 100644
 --- a/drivers/gpu/drm/drm_gem.c
 +++ b/drivers/gpu/drm/drm_gem.c
 @@ -98,7 +98,7 @@ drm_gem_init(struct drm_device *dev)
@@ -23,7 +21,7 @@ index 4a16d7b26c89..c5545843e755 100644
  
  	vma_offset_manager = kzalloc(sizeof(*vma_offset_manager), GFP_KERNEL);
  	if (!vma_offset_manager) {
-@@ -779,7 +779,7 @@ drm_gem_open_ioctl(struct drm_device *dev, void *data,
+@@ -785,7 +785,7 @@ drm_gem_open_ioctl(struct drm_device *de
  void
  drm_gem_open(struct drm_device *dev, struct drm_file *file_private)
  {
@@ -32,11 +30,9 @@ index 4a16d7b26c89..c5545843e755 100644
  	spin_lock_init(&file_private->table_lock);
  }
  
-diff --git a/drivers/gpu/drm/drm_syncobj.c b/drivers/gpu/drm/drm_syncobj.c
-index d4f4ce484529..0b7b0d1ad2d5 100644
 --- a/drivers/gpu/drm/drm_syncobj.c
 +++ b/drivers/gpu/drm/drm_syncobj.c
-@@ -546,7 +546,7 @@ static int drm_syncobj_export_sync_file(struct drm_file *file_private,
+@@ -498,7 +498,7 @@ err_put_fd:
  void
  drm_syncobj_open(struct drm_file *file_private)
  {
@@ -45,6 +41,3 @@ index d4f4ce484529..0b7b0d1ad2d5 100644
  	spin_lock_init(&file_private->syncobj_table_lock);
  }
  
--- 
-2.17.1
-
