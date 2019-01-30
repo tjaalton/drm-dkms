@@ -47,7 +47,7 @@
 
 static void intel_fbdev_invalidate(struct intel_fbdev *ifbdev)
 {
-	struct drm_i915_gem_object *obj = ifbdev->fb->obj;
+	struct drm_i915_gem_object *obj = intel_fb_obj(&ifbdev->fb->base);
 	unsigned int origin =
 		ifbdev->vma_flags & PLANE_HAS_FENCE ? ORIGIN_GTT : ORIGIN_CPU;
 
@@ -175,6 +175,9 @@ static int intelfb_create(struct drm_fb_helper *helper,
 	struct drm_i915_private *dev_priv = to_i915(dev);
 	struct pci_dev *pdev = dev_priv->drm.pdev;
 	struct i915_ggtt *ggtt = &dev_priv->ggtt;
+	const struct i915_ggtt_view view = {
+		.type = I915_GGTT_VIEW_NORMAL,
+	};
 	struct fb_info *info;
 	struct drm_framebuffer *fb;
 	struct i915_vma *vma;
@@ -193,7 +196,7 @@ static int intelfb_create(struct drm_fb_helper *helper,
 		drm_framebuffer_put(&intel_fb->base);
 		intel_fb = ifbdev->fb = NULL;
 	}
-	if (!intel_fb || WARN_ON(!intel_fb->obj)) {
+	if (!intel_fb || WARN_ON(!intel_fb_obj(&intel_fb->base))) {
 		DRM_DEBUG_KMS("no BIOS fb, allocating a new one\n");
 		ret = intelfb_alloc(helper, sizes);
 		if (ret)
@@ -214,8 +217,7 @@ static int intelfb_create(struct drm_fb_helper *helper,
 	 * BIOS is suitable for own access.
 	 */
 	vma = intel_pin_and_fence_fb_obj(&ifbdev->fb->base,
-					 DRM_MODE_ROTATE_0,
-					 false, &flags);
+					 &view, false, &flags);
 	if (IS_ERR(vma)) {
 		ret = PTR_ERR(vma);
 		goto out_unlock;
@@ -265,7 +267,7 @@ static int intelfb_create(struct drm_fb_helper *helper,
 	 * If the object is stolen however, it will be full of whatever
 	 * garbage was left in there.
 	 */
-	if (intel_fb->obj->stolen && !prealloc)
+	if (intel_fb_obj(fb)->stolen && !prealloc)
 		memset_io(info->screen_base, 0, info->screen_size);
 
 	/* Use default scratch pixmap (info->pixmap.flags = FB_PIXMAP_SYSTEM) */
@@ -591,7 +593,7 @@ static bool intel_fbdev_init_bios(struct drm_device *dev,
 		 * pipe.  Note we need to use the selected fb's pitch and bpp
 		 * rather than the current pipe's, since they differ.
 		 */
-		cur_size = intel_crtc->config->base.adjusted_mode.crtc_hdisplay;
+		cur_size = crtc->state->adjusted_mode.crtc_hdisplay;
 		cur_size = cur_size * fb->base.format->cpp[0];
 		if (fb->base.pitches[0] < cur_size) {
 			DRM_DEBUG_KMS("fb not wide enough for plane %c (%d vs %d)\n",
@@ -601,13 +603,13 @@ static bool intel_fbdev_init_bios(struct drm_device *dev,
 			break;
 		}
 
-		cur_size = intel_crtc->config->base.adjusted_mode.crtc_vdisplay;
+		cur_size = crtc->state->adjusted_mode.crtc_vdisplay;
 		cur_size = intel_fb_align_height(&fb->base, 0, cur_size);
 		cur_size *= fb->base.pitches[0];
 		DRM_DEBUG_KMS("pipe %c area: %dx%d, bpp: %d, size: %d\n",
 			      pipe_name(intel_crtc->pipe),
-			      intel_crtc->config->base.adjusted_mode.crtc_hdisplay,
-			      intel_crtc->config->base.adjusted_mode.crtc_vdisplay,
+			      crtc->state->adjusted_mode.crtc_hdisplay,
+			      crtc->state->adjusted_mode.crtc_vdisplay,
 			      fb->base.format->cpp[0] * 8,
 			      cur_size);
 
@@ -670,7 +672,7 @@ int intel_fbdev_init(struct drm_device *dev)
 	struct intel_fbdev *ifbdev;
 	int ret;
 
-	if (WARN_ON(INTEL_INFO(dev_priv)->num_pipes == 0))
+	if (WARN_ON(!HAS_DISPLAY(dev_priv)))
 		return -ENODEV;
 
 	ifbdev = kzalloc(sizeof(struct intel_fbdev), GFP_KERNEL);
@@ -792,7 +794,8 @@ void intel_fbdev_set_suspend(struct drm_device *dev, int state, bool synchronous
 	 * been restored from swap. If the object is stolen however, it will be
 	 * full of whatever garbage was left in there.
 	 */
-	if (state == FBINFO_STATE_RUNNING && ifbdev->fb->obj->stolen)
+	if (state == FBINFO_STATE_RUNNING &&
+	    intel_fb_obj(&ifbdev->fb->base)->stolen)
 		memset_io(info->screen_base, 0, info->screen_size);
 
 	drm_fb_helper_set_suspend(&ifbdev->helper, state);
